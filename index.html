@@ -1,32 +1,212 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; worker-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
-<meta name="description" content="Repair a volunteer rota locally. Preserve commitments, understand staffing shortages, and review every change.">
-<title>Muster · Rota repair</title>
-<link rel="icon" href="./favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="./styles.css">
-</head>
-<body>
-<header class="masthead"><a href="./" class="brand" aria-label="Muster home">muster</a><p>Rota repair</p><span class="local">Local workspace</span></header>
-<main>
-<div id="message" class="message" role="status" aria-live="polite" hidden></div>
-<section id="recovery" class="message error" hidden><h2>Saved work needs attention</h2><p id="recovery-message"></p><button id="recover-download">Download saved bytes</button> <button id="recover-reset">Replace with an example</button></section>
-<div id="workspace">
-<div class="project-bar"><div><p class="eyebrow" id="project-kind">LOCAL PROJECT</p><h1 id="project-title"></h1><p id="save-state"></p></div><div class="actions"><button id="undo" disabled>Undo</button><button id="import">Import project</button><button id="export">Export project</button><input id="file" type="file" accept=".json,application/json" hidden><button id="reset">Example</button></div></div>
-<nav class="tabs" aria-label="Worksheet sections"><button class="active" data-view="rota" aria-current="page">Rota</button><button data-view="people">People & availability</button><button data-view="setup">Project setup</button></nav>
-<section id="rota-view">
-<div class="solve-bar"><p id="result-status">No current proposal.</p><div class="actions"><button id="cancel" hidden>Cancel</button><button class="primary" id="solve">Calculate repair</button></div></div>
-<div class="worksheet"><div><div class="table-wrap" tabindex="0" aria-label="Staffing worksheet. Scroll horizontally on narrow screens."><table><thead><tr><th>Position / block</th><th>Role</th><th>Reference</th><th>Proposal</th><th>Commitment</th><th><span class="sr-only">Edit position</span></th></tr></thead><tbody id="rota-body"></tbody></table></div><div class="under-table"><button id="add-position">+ Add position</button><span>Scroll for assignments →</span></div><div class="actions result-actions"><button id="csv" disabled>Export assignment CSV</button><button id="accept" disabled>Use proposal as reference</button></div></div><aside id="explanation" class="explanation"><p class="eyebrow">CAPACITY</p><h3>No current proposal</h3><p>Calculate after editing the rota.</p></aside></div>
-</section>
-<section id="people-view" hidden><div class="section-heading"><div><h3>People & availability</h3><p>Confirm availability with volunteers before adopting a proposal.</p></div><button id="add-person">+ Add person</button></div><div id="people-list" class="people-list"></div></section>
-<section id="setup-view" hidden><div class="section-heading"><div><h3>Roles & time blocks</h3><p>Time blocks must not overlap. Each person can fill one position per block.</p></div><button id="rename">Rename project</button></div><div class="setup-columns"><div><h4>Roles</h4><div id="roles-list"></div><button id="add-role">+ Add role</button></div><div><h4>Time blocks</h4><div id="blocks-list"></div><button id="add-block">+ Add block</button></div></div><details><summary>Advanced project JSON</summary><p>Replace the complete input model. Invalid input leaves the current project intact.</p><label for="project-json">Project JSON</label><textarea id="project-json" rows="18" spellcheck="false"></textarea><p id="json-draft-status" role="status"></p><button id="apply-json">Validate and replace</button> <button id="discard-json" hidden>Discard draft</button></details></section>
-</div>
-<footer><p>Runs locally. Export a project file to back up your work.</p><details><summary>How decisions are made</summary><p>First maximize filled positions, then minimize changed reference assignments, then minimize the sum of squared assignment counts. Locks are hard constraints. New assignments without a reference do not count as changed commitments. Equal scores can have several valid solutions.</p><p>Counts do not measure hours or preferences. This worksheet does not model travel, minimum rest, overlapping blocks, labor rules, or historical fairness. A staffing shortage is about the declared inputs.</p></details></footer>
-</main>
-<dialog id="editor"><form id="editor-form"><div class="dialog-heading"><h2 id="editor-title"></h2><button type="button" id="close-editor" aria-label="Close editor">×</button></div><div id="editor-fields"></div><p id="editor-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" id="delete-item" class="danger" hidden>Remove</button><button class="primary" type="submit">Save changes</button></div></form></dialog>
-<dialog id="confirmation" aria-labelledby="confirmation-heading"><h2 id="confirmation-heading">Confirm this change</h2><p id="confirmation-text"></p><div class="dialog-actions"><button id="confirm-no">Keep current work</button><button id="confirm-yes" class="primary">Confirm change</button></div></dialog>
-<noscript>This worksheet needs JavaScript to calculate assignments locally.</noscript>
-<script type="module" src="./src/app.js"></script>
-</body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; worker-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'"
+    />
+    <meta
+      name="description"
+      content="Repair a volunteer rota locally. Preserve commitments, understand staffing shortages, and review every change."
+    />
+    <title>Muster · Rota repair</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <a href="./" class="brand" aria-label="Muster home">muster</a>
+      <p>Rota repair</p>
+      <span class="local">Local workspace</span>
+    </header>
+    <main>
+      <div
+        id="message"
+        class="message"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
+      <section id="recovery" class="message error" hidden>
+        <h2>Saved work needs attention</h2>
+        <p id="recovery-message"></p>
+        <button id="recover-download">Download saved bytes</button>
+        <button id="recover-reset">Replace with an example</button>
+      </section>
+      <div id="workspace">
+        <div class="project-bar">
+          <div>
+            <p class="eyebrow" id="project-kind">LOCAL PROJECT</p>
+            <h1 id="project-title"></h1>
+            <p id="save-state"></p>
+          </div>
+          <div class="actions">
+            <button id="undo" disabled>Undo</button
+            ><button id="import">Import project</button
+            ><button id="export">Export project</button
+            ><input
+              id="file"
+              type="file"
+              accept=".json,application/json"
+              hidden
+            /><button id="reset">Example</button>
+          </div>
+        </div>
+        <nav class="tabs" aria-label="Worksheet sections">
+          <button class="active" data-view="rota" aria-current="page">
+            Rota</button
+          ><button data-view="people">People & availability</button
+          ><button data-view="setup">Project setup</button>
+        </nav>
+        <section id="rota-view">
+          <div class="solve-bar">
+            <p id="result-status">No current proposal.</p>
+            <div class="actions">
+              <button id="cancel" hidden>Cancel</button
+              ><button class="primary" id="solve">Calculate repair</button>
+            </div>
+          </div>
+          <div class="worksheet">
+            <div>
+              <div
+                class="table-wrap"
+                tabindex="0"
+                aria-label="Staffing worksheet. Scroll horizontally on narrow screens."
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Position / block</th>
+                      <th>Role</th>
+                      <th>Reference</th>
+                      <th>Proposal</th>
+                      <th>Commitment</th>
+                      <th><span class="sr-only">Edit position</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="rota-body"></tbody>
+                </table>
+              </div>
+              <div class="under-table">
+                <button id="add-position">+ Add position</button
+                ><span>Scroll for assignments →</span>
+              </div>
+              <div class="actions result-actions">
+                <button id="csv" disabled>Export assignment CSV</button
+                ><button id="accept" disabled>Use proposal as reference</button>
+              </div>
+            </div>
+            <aside id="explanation" class="explanation">
+              <p class="eyebrow">CAPACITY</p>
+              <h3>No current proposal</h3>
+              <p>Calculate after editing the rota.</p>
+            </aside>
+          </div>
+        </section>
+        <section id="people-view" hidden>
+          <div class="section-heading">
+            <div>
+              <h3>People & availability</h3>
+              <p>
+                Confirm availability with volunteers before adopting a proposal.
+              </p>
+            </div>
+            <button id="add-person">+ Add person</button>
+          </div>
+          <div id="people-list" class="people-list"></div>
+        </section>
+        <section id="setup-view" hidden>
+          <div class="section-heading">
+            <div>
+              <h3>Roles & time blocks</h3>
+              <p>
+                Time blocks must not overlap. Each person can fill one position
+                per block.
+              </p>
+            </div>
+            <button id="rename">Rename project</button>
+          </div>
+          <div class="setup-columns">
+            <div>
+              <h4>Roles</h4>
+              <div id="roles-list"></div>
+              <button id="add-role">+ Add role</button>
+            </div>
+            <div>
+              <h4>Time blocks</h4>
+              <div id="blocks-list"></div>
+              <button id="add-block">+ Add block</button>
+            </div>
+          </div>
+          <details>
+            <summary>Advanced project JSON</summary>
+            <p>
+              Replace the complete input model. Invalid input leaves the current
+              project intact.
+            </p>
+            <label for="project-json">Project JSON</label
+            ><textarea
+              id="project-json"
+              rows="18"
+              spellcheck="false"
+            ></textarea>
+            <p id="json-draft-status" role="status"></p>
+            <button id="apply-json">Validate and replace</button>
+            <button id="discard-json" hidden>Discard draft</button>
+          </details>
+        </section>
+      </div>
+      <footer>
+        <p>Runs locally. Export a project file to back up your work.</p>
+        <details>
+          <summary>How decisions are made</summary>
+          <p>
+            First maximize filled positions, then minimize changed reference
+            assignments, then minimize the sum of squared assignment counts.
+            Locks are hard constraints. New assignments without a reference do
+            not count as changed commitments. Equal scores can have several
+            valid solutions.
+          </p>
+          <p>
+            Counts do not measure hours or preferences. This worksheet does not
+            model travel, minimum rest, overlapping blocks, labor rules, or
+            historical fairness. A staffing shortage is about the declared
+            inputs.
+          </p>
+        </details>
+      </footer>
+    </main>
+    <dialog id="editor">
+      <form id="editor-form">
+        <div class="dialog-heading">
+          <h2 id="editor-title"></h2>
+          <button type="button" id="close-editor" aria-label="Close editor">
+            ×
+          </button>
+        </div>
+        <div id="editor-fields"></div>
+        <p id="editor-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions">
+          <button type="button" id="delete-item" class="danger" hidden>
+            Remove</button
+          ><button class="primary" type="submit">Save changes</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="confirmation" aria-labelledby="confirmation-heading">
+      <h2 id="confirmation-heading">Confirm this change</h2>
+      <p id="confirmation-text"></p>
+      <div class="dialog-actions">
+        <button id="confirm-no">Keep current work</button
+        ><button id="confirm-yes" class="primary">Confirm change</button>
+      </div>
+    </dialog>
+    <noscript
+      >This worksheet needs JavaScript to calculate assignments
+      locally.</noscript
+    >
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

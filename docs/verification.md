@@ -14,6 +14,6 @@ Local work on September 27, 2026, macOS arm64, Node 24.14.0:
 
 - Chrome rejected an imported duplicate-key JSON file with an explicit error while retaining the repaired five-position proposal and its lock.
 
-CI configuration and public deployment are not verification by themselves. Final hosted CI and deployed-route checks remain pending at this checkpoint.
+[GitHub CI 36339990912](https://github.com/nazeeh111/Muster/actions/runs/36339990912) passed on `98a3e052d13dfb096dec4d96fd8ada3b679cfc7b`: both Node 22 and 24 ran all 11 tests and browser-module syntax checks. The public GitHub Pages deployment of that revision was exercised in Chrome: the initial 4/5 shortage displayed Ada's remaining capacity and per-block limits; editing Cy's Saturday availability produced 5/5 and retained Bob's lock. Module and worker paths worked under `/Muster/`. Subsequent source formatting does not change the scheduling contract.
 
 These checks do not establish universal solver correctness, accessibility compliance, real-world volunteer availability or suitability for labor-law scheduling. Only disjoint named blocks and the documented capacities are modeled. Browser storage is neither encrypted storage nor a durable backup.

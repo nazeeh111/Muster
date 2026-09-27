@@ -4,6 +4,8 @@
 
 Muster is a local browser worksheet for small events. Mark a cancellation, keep settled assignments locked, and calculate a proposal that fills as many positions as possible while minimizing changes. When a group of positions cannot be covered together, the worksheet identifies that group and its maximum possible coverage.
 
+[Open Muster](https://nazeeh111.github.io/Muster/).
+
 No account, backend, runtime dependencies, or schedule uploads. Inputs stay in this browser unless you export them. The included community-pantry rota is synthetic.
 
 ## Try it locally
