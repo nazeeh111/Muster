@@ -1,3 +1,5 @@
+import { overlaps, parseTimestamp } from "./time.js?v=0.2.0";
+
 const ID = /^[a-z][a-z0-9_-]{0,39}$/;
 const MAX_BYTES = 1024 * 1024;
 
@@ -71,7 +73,9 @@ export function validateModel(input) {
     new TextEncoder().encode(serialized).length > MAX_BYTES
   )
     fail("model", "serialized input exceeds 1 MiB");
-  if (input.format !== "muster/v1") fail("format", "expected muster/v1");
+  if (input.format !== "muster/v1" && input.format !== "muster/v2")
+    fail("format", "expected muster/v1 or muster/v2");
+  const timed = input.format === "muster/v2";
   text(input.title, "title");
   list(input.roles, "roles", 12, 1);
   list(input.blocks, "blocks", 16, 1);
@@ -82,10 +86,30 @@ export function validateModel(input) {
     id(role.id, `roles[${i}].id`);
     text(role.label, `roles[${i}].label`);
   }
+  const intervals = new Map();
   for (const [i, block] of input.blocks.entries()) {
-    object(block, `blocks[${i}]`, ["id", "label"]);
+    object(
+      block,
+      `blocks[${i}]`,
+      timed ? ["id", "label", "startAt", "endAt"] : ["id", "label"],
+    );
     id(block.id, `blocks[${i}].id`);
     text(block.label, `blocks[${i}].label`);
+    if (timed) {
+      let start, end;
+      try {
+        start = parseTimestamp(block.startAt);
+      } catch (error) {
+        fail(`blocks[${i}].startAt`, error.message);
+      }
+      try {
+        end = parseTimestamp(block.endAt);
+      } catch (error) {
+        fail(`blocks[${i}].endAt`, error.message);
+      }
+      if (end <= start) fail(`blocks[${i}].endAt`, "must be after startAt");
+      intervals.set(block.id, { start, end });
+    }
   }
   const roleIds = uniqueObjects(input.roles, "roles");
   const blockIds = uniqueObjects(input.blocks, "blocks");
@@ -138,6 +162,7 @@ export function validateModel(input) {
   }
   uniqueObjects(input.positions, "positions");
   const usedBlocks = new Set();
+  const lockedIntervals = new Map();
   const loads = new Map(input.people.map((p) => [p.id, 0]));
   for (const position of input.positions) {
     const who = position.lockedPersonId;
@@ -150,13 +175,25 @@ export function validateModel(input) {
         `positions.${position.id}.lockedPersonId`,
         "lock lacks availability",
       );
-    const key = `${who}\0${position.blockId}`;
-    if (usedBlocks.has(key))
-      fail(
-        `positions.${position.id}.lockedPersonId`,
-        "lock conflicts in block",
-      );
-    usedBlocks.add(key);
+    if (timed) {
+      const current = intervals.get(position.blockId);
+      const prior = lockedIntervals.get(who) ?? [];
+      if (prior.some((other) => overlaps(current, other)))
+        fail(
+          `positions.${position.id}.lockedPersonId`,
+          "lock intervals overlap",
+        );
+      prior.push(current);
+      lockedIntervals.set(who, prior);
+    } else {
+      const key = `${who}\0${position.blockId}`;
+      if (usedBlocks.has(key))
+        fail(
+          `positions.${position.id}.lockedPersonId`,
+          "lock conflicts in block",
+        );
+      usedBlocks.add(key);
+    }
     loads.set(who, loads.get(who) + 1);
     if (loads.get(who) > person.maxAssignments)
       fail(

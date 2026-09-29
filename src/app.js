@@ -1,12 +1,12 @@
-import { validateModel } from "./model.js";
-import { example } from "./example.js";
+import { validateModel } from "./model.js?v=0.2.0";
+import { example } from "./example.js?v=0.2.0";
 import {
   STORAGE_KEY,
   MAX_INPUT_BYTES,
   parseProject,
   saveModel,
   assignmentsCsv,
-} from "./state.js";
+} from "./state.js?v=0.2.0";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, attrs = {}, ...children) {
@@ -44,6 +44,21 @@ const counted = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const clone = (x) => structuredClone(x);
 const label = (collection, id, key = "label") =>
   model[collection].find((x) => x.id === id)?.[key] ?? "Unassigned";
+function blockTime(block) {
+  if (!block.startAt) return "";
+  const display = (value) =>
+    `${value.slice(0, 16).replace("T", " ")} UTC${value.slice(16) === "Z" ? "" : value.slice(16)}`;
+  return `${display(block.startAt)} to ${display(block.endAt)}`;
+}
+function blockLabel(block) {
+  return block.startAt ? `${block.label} · ${blockTime(block)}` : block.label;
+}
+function blockChoices() {
+  return model.blocks.map((block) => ({
+    id: block.id,
+    label: blockLabel(block),
+  }));
+}
 function message(text, error = false) {
   $("message").textContent = text;
   $("message").classList.toggle("error", error);
@@ -124,7 +139,7 @@ function calculate() {
   $("solve").disabled = true;
   $("cancel").hidden = false;
   try {
-    worker = new Worker(new URL("./worker.js", import.meta.url), {
+    worker = new Worker(new URL("./worker.js?v=0.2.0", import.meta.url), {
       type: "module",
     });
   } catch {
@@ -226,6 +241,9 @@ function render() {
             {},
             el("strong", {}, position.label),
             el("small", {}, block.label),
+            block.startAt
+              ? el("small", { class: "block-time" }, blockTime(block))
+              : null,
           ),
           el("td", {}, label("roles", position.roleId)),
           el(
@@ -271,7 +289,7 @@ function render() {
       ),
     );
   $("result-status").textContent = result
-    ? `${result.assignments.length} of ${model.positions.length} positions filled · ${counted(result.objective.changes, "changed reference assignment")}`
+    ? `${result.assignments.length} of ${model.positions.length} positions filled · ${counted(result.objective.changes, "changed reference assignment")}${result.optimal === false ? " · Best found, not proven optimal" : ""}`
     : "Inputs changed. Recalculate to update the proposal.";
   renderExplanation();
   renderPeople();
@@ -296,27 +314,54 @@ function renderExplanation() {
       );
     return;
   }
-  if (result.shortage) {
+  if (result.optimal === false) {
+    area.append(
+      el("h3", {}, "Search limit reached"),
+      el(
+        "p",
+        {},
+        "This proposal respects the declared constraints. A better assignment may exist.",
+      ),
+    );
+  } else if (result.shortage) {
     const s = result.shortage;
     area.append(
-      el("h3", {}, "A collective shortage"),
+      el(
+        "h3",
+        {},
+        s.scope === "all-positions"
+          ? "Whole-rota coverage limit"
+          : "A collective shortage",
+      ),
       el(
         "p",
         {},
         `These ${counted(s.demand, "position")} can receive at most ${counted(s.capacity, "assignment")} under the current inputs. ${s.deficit} must remain unfilled.`,
       ),
-      el(
-        "ul",
-        {},
-        s.positionIds.map((id) => el("li", {}, label("positions", id))),
-      ),
+      ...(s.scope === "all-positions"
+        ? []
+        : [
+            el(
+              "ul",
+              {},
+              s.positionIds.map((id) => el("li", {}, label("positions", id))),
+            ),
+          ]),
       el(
         "button",
         { onclick: () => showView("people") },
         "Review availability",
       ),
     );
-    if (s.personIds.length) {
+    if (s.scope === "all-positions") {
+      area.append(
+        el(
+          "p",
+          {},
+          "This bound covers the whole rota, not a smaller bottleneck group.",
+        ),
+      );
+    } else if (s.personIds.length) {
       area.append(
         el("h4", {}, "Eligible people"),
         ...s.limits
@@ -399,7 +444,7 @@ function renderExplanation() {
         el(
           "p",
           {},
-          `Sum of squared assignment counts: ${result.objective.squaredLoads}. Minimized after coverage and reference preservation.`,
+          `Sum of squared assignment counts: ${result.objective.squaredLoads}.${result.optimal === false ? " This is the score of the current proposal." : " Minimized after coverage and reference preservation."}`,
         ),
       ),
     ),
@@ -424,8 +469,11 @@ function renderPeople() {
           el(
             "p",
             {},
-            person.availability.map((id) => label("blocks", id)).join(" / ") ||
-              "No availability",
+            person.availability
+              .map((id) =>
+                blockLabel(model.blocks.find((block) => block.id === id)),
+              )
+              .join(" / ") || "No availability",
           ),
           el(
             "p",
@@ -450,13 +498,25 @@ function renderPeople() {
     );
 }
 function renderSetup() {
+  $("add-times").hidden = model.format === "muster/v2";
+  $("block-rule").textContent =
+    model.format === "muster/v2"
+      ? "A person cannot take overlapping shifts. Back-to-back shifts are allowed."
+      : "Named blocks must not overlap. Add shift times to check overlaps.";
   for (const kind of ["roles", "blocks"])
     $(kind + "-list").replaceChildren(
       ...model[kind].map((item) =>
         el(
           "div",
           { class: "setup-item" },
-          el("span", {}, item.label),
+          el(
+            "span",
+            {},
+            item.label,
+            kind === "blocks" && item.startAt
+              ? el("small", { class: "block-time" }, blockTime(item))
+              : null,
+          ),
           el(
             "button",
             {
@@ -500,6 +560,71 @@ function field(title, name, value, type = "text", attrs = {}) {
     input,
   );
 }
+function endpointFields(title, prefix, value = "") {
+  return el(
+    "fieldset",
+    { class: "shift-endpoint" },
+    el("legend", {}, title),
+    field(
+      "Date and time",
+      prefix + "-local",
+      value.slice(0, 16),
+      "datetime-local",
+      {
+        step: "60",
+        min: "0001-01-01T00:00",
+        max: "9999-12-31T23:59",
+      },
+    ),
+    field("UTC offset", prefix + "-offset", value.slice(16) || "Z", "text", {
+      placeholder: "Z or -04:00",
+      maxlength: "6",
+    }),
+  );
+}
+function endpointValue(form, prefix) {
+  return (
+    form.get(prefix + "-local") +
+    form
+      .get(prefix + "-offset")
+      .trim()
+      .toUpperCase()
+  );
+}
+function shiftFields(block, prefix) {
+  return [
+    endpointFields("Start", prefix + "-start", block.startAt),
+    endpointFields("End", prefix + "-end", block.endAt),
+  ];
+}
+function addShiftTimes() {
+  openEditor(
+    "Add shift times",
+    [
+      el(
+        "p",
+        {},
+        "Enter each block’s dates, times and UTC offsets. Use the next day for an overnight end. Offsets are not inferred from this device.",
+      ),
+      ...model.blocks.map((block) =>
+        el(
+          "fieldset",
+          { class: "shift-block" },
+          el("legend", {}, block.label),
+          ...shiftFields(block, block.id),
+        ),
+      ),
+    ],
+    (form) =>
+      apply((next) => {
+        next.format = "muster/v2";
+        for (const block of next.blocks) {
+          block.startAt = endpointValue(form, block.id + "-start");
+          block.endAt = endpointValue(form, block.id + "-end");
+        }
+      }),
+  );
+}
 function choices(title, name, items, selected) {
   return el(
     "fieldset",
@@ -527,11 +652,27 @@ function select(title, name, items, value) {
     items.map((item) => el("option", { value: item.id }, item.label)),
   );
   input.value = value;
+  let selectedInterval = null;
+  if (name === "block" && model.format === "muster/v2") {
+    selectedInterval = el("small", {
+      id: "edit-block-interval",
+      class: "block-time",
+    });
+    const showInterval = () => {
+      selectedInterval.textContent = blockTime(
+        model.blocks.find((block) => block.id === input.value),
+      );
+    };
+    input.setAttribute("aria-describedby", "edit-block-interval");
+    input.addEventListener("change", showInterval);
+    showInterval();
+  }
   return el(
     "div",
     { class: "field" },
     el("label", { for: "edit-" + name }, title),
     input,
+    selectedInterval,
   );
 }
 function openEditor(title, fields, onSave, onDelete = null) {
@@ -564,7 +705,7 @@ function editPerson(person = null) {
       choices(
         "Available time blocks",
         "availability",
-        model.blocks,
+        blockChoices(),
         p.availability,
       ),
     ],
@@ -614,7 +755,7 @@ function editPosition(position = null) {
     position ? "Edit position" : "Add a position",
     [
       field("Position label", "label", p.label, "text", { maxlength: "120" }),
-      select("Time block", "block", model.blocks, p.blockId),
+      select("Time block", "block", blockChoices(), p.blockId),
       select("Required role", "role", model.roles, p.roleId),
       select(
         "Reference assignment",
@@ -672,14 +813,29 @@ function editNamed(kind, item = null) {
   };
   openEditor(
     `${item ? "Edit" : "Add"} ${singular}`,
-    [field("Label", "label", value.label, "text", { maxlength: "120" })],
+    [
+      field("Label", "label", value.label, "text", { maxlength: "120" }),
+      ...(kind === "blocks" && model.format === "muster/v2"
+        ? [
+            el(
+              "p",
+              {},
+              "Enter the event’s UTC offsets. Use the next day for an overnight end.",
+            ),
+            ...shiftFields(value, "block"),
+          ]
+        : []),
+    ],
     (form) =>
       apply((data) => {
+        const edited = { ...value, label: form.get("label").trim() };
+        if (kind === "blocks" && data.format === "muster/v2") {
+          edited.startAt = endpointValue(form, "block-start");
+          edited.endAt = endpointValue(form, "block-end");
+        }
         if (item)
-          data[kind].find((x) => x.id === value.id).label = form
-            .get("label")
-            .trim();
-        else data[kind].push({ ...value, label: form.get("label").trim() });
+          data[kind][data[kind].findIndex((x) => x.id === value.id)] = edited;
+        else data[kind].push(edited);
       }),
     item
       ? async () => {
@@ -752,6 +908,7 @@ $("add-person").onclick = () => editPerson();
 $("add-position").onclick = () => editPosition();
 $("add-role").onclick = () => editNamed("roles");
 $("add-block").onclick = () => editNamed("blocks");
+$("add-times").onclick = addShiftTimes;
 $("rename").onclick = () =>
   openEditor(
     "Rename project",

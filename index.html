@@ -13,7 +13,7 @@
     />
     <title>Muster · Rota repair</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=0.2.0" />
   </head>
   <body>
     <header class="masthead">
@@ -121,9 +121,9 @@
           <div class="section-heading">
             <div>
               <h3>Roles & time blocks</h3>
-              <p>
-                Time blocks must not overlap. Each person can fill one position
-                per block.
+              <p id="block-rule">
+                Named blocks must not overlap. Add shift times to check
+                overlaps.
               </p>
             </div>
             <button id="rename">Rename project</button>
@@ -138,6 +138,7 @@
               <h4>Time blocks</h4>
               <div id="blocks-list"></div>
               <button id="add-block">+ Add block</button>
+              <button id="add-times">Add shift times</button>
             </div>
           </div>
           <details>
@@ -171,9 +172,13 @@
           </p>
           <p>
             Counts do not measure hours or preferences. This worksheet does not
-            model travel, minimum rest, overlapping blocks, labor rules, or
-            historical fairness. A staffing shortage is about the declared
-            inputs.
+            model travel, minimum rest, labor rules, or historical fairness. A
+            staffing shortage is about the declared inputs.
+          </p>
+          <p>
+            Timed projects check overlapping shifts. If search reaches its time
+            limit, the proposal is labeled as unproven and no shortage is
+            certified.
           </p>
         </details>
       </footer>
@@ -207,6 +212,6 @@
       >This worksheet needs JavaScript to calculate assignments
       locally.</noscript
     >
-    <script type="module" src="./src/app.js"></script>
+    <script type="module" src="./src/app.js?v=0.2.0"></script>
   </body>
 </html>

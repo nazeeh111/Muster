@@ -1,4 +1,6 @@
-import { validateModel } from "./model.js";
+import { validateModel } from "./model.js?v=0.2.0";
+import { interval, overlaps } from "./time.js?v=0.2.0";
+import { solveTimed } from "./timed-solver.js?v=0.2.0";
 
 function edge(graph, from, to, capacity, cost = 0) {
   const forward = { to, reverse: graph[to].length, capacity, cost };
@@ -272,8 +274,7 @@ function explainShortage(input, selected, state) {
   };
 }
 
-export function solve(input) {
-  validateModel(input);
+function solveV1(input) {
   const state = lockedState(input);
   const open = input.positions.filter(
     (position) => position.lockedPersonId == null,
@@ -336,4 +337,34 @@ export function solve(input) {
       throw new Error("internal error: shortage witness is not deficient");
   }
   return { assignments, unfilled, loads, changes, objective, shortage };
+}
+
+export function solve(input, options = {}) {
+  validateModel(input);
+  if (input.format === "muster/v1") return solveV1(input);
+  const blocks = new Map(input.blocks.map((block) => [
+    block.id, interval(block.startAt, block.endAt),
+  ]));
+  const times = [...blocks.values()];
+  if (times.every((first, i) => times.slice(i + 1).every((other) => !overlaps(first, other)))) {
+    const untimed = {
+      ...input,
+      format: "muster/v1",
+      blocks: input.blocks.map(({ id, label }) => ({ id, label })),
+    };
+    const result = solveV1(untimed);
+    const deficit = result.unfilled.length;
+    return {
+      ...result,
+      optimal: true,
+      shortage: deficit ? {
+        scope: "all-positions",
+        positionIds: input.positions.map((position) => position.id),
+        demand: input.positions.length,
+        capacity: input.positions.length - deficit,
+        deficit,
+      } : null,
+    };
+  }
+  return solveTimed(input, blocks, options);
 }

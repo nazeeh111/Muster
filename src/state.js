@@ -9,20 +9,33 @@ export function csvCell(value) {
 
 export function assignmentsCsv(model, result) {
   const roles = new Map(model.roles.map((x) => [x.id, x.label]));
-  const blocks = new Map(model.blocks.map((x) => [x.id, x.label]));
+  const blocks = new Map(model.blocks.map((x) => [x.id, x]));
   const people = new Map(model.people.map((x) => [x.id, x.name]));
+  const timed = model.format === "muster/v2";
   const assigned = new Map(
     result.assignments.map((x) => [x.positionId, x.personId]),
   );
-  const rows = [["Position", "Block", "Role", "Person", "Commitment"]];
-  for (const position of model.positions)
+  const rows = [
+    [
+      "Position",
+      "Block",
+      "Role",
+      "Person",
+      "Commitment",
+      ...(timed ? ["Start", "End"] : []),
+    ],
+  ];
+  for (const position of model.positions) {
+    const block = blocks.get(position.blockId);
     rows.push([
       position.label,
-      blocks.get(position.blockId),
+      block?.label,
       roles.get(position.roleId),
       people.get(assigned.get(position.id)) ?? "Unfilled",
       position.lockedPersonId ? "Locked" : "Proposed",
+      ...(timed ? [block?.startAt, block?.endAt] : []),
     ]);
+  }
   return rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 

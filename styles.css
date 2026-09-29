@@ -620,6 +620,29 @@ main {
 .explanation details {
   margin-top: 12px;
 }
+.block-time {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 400;
+}
+.shift-block {
+  margin-bottom: 24px;
+}
+.shift-endpoint {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.shift-endpoint input {
+  min-width: 0;
+}
+@media (max-width: 650px) {
+  .shift-endpoint {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}
 @media (max-width: 750px) {
   .under-table span {
     display: inline;
