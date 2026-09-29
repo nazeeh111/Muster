@@ -11,15 +11,13 @@
       name="description"
       content="Repair a volunteer rota locally. Preserve commitments, understand staffing shortages, and review every change."
     />
-    <title>Muster · Rota repair</title>
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=0.2.0" />
+    <title>Muster</title>
+    <link rel="icon" href="./favicon.svg?v=0.2.1" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=0.2.1" />
   </head>
   <body>
     <header class="masthead">
-      <a href="./" class="brand" aria-label="Muster home">muster</a>
-      <p>Rota repair</p>
-      <span class="local">Local workspace</span>
+      <a href="./" class="brand" aria-label="Muster home">Muster</a>
     </header>
     <main>
       <div
@@ -38,9 +36,8 @@
       <div id="workspace">
         <div class="project-bar">
           <div>
-            <p class="eyebrow" id="project-kind">LOCAL PROJECT</p>
             <h1 id="project-title"></h1>
-            <p id="save-state"></p>
+            <div class="project-meta"><span id="project-kind"></span><span id="save-state"></span></div>
           </div>
           <div class="actions">
             <button id="undo" disabled>Undo</button
@@ -99,7 +96,6 @@
               </div>
             </div>
             <aside id="explanation" class="explanation">
-              <p class="eyebrow">CAPACITY</p>
               <h3>No current proposal</h3>
               <p>Calculate after editing the rota.</p>
             </aside>
@@ -144,8 +140,7 @@
           <details>
             <summary>Advanced project JSON</summary>
             <p>
-              Replace the complete input model. Invalid input leaves the current
-              project intact.
+              Validates the complete input model before replacement.
             </p>
             <label for="project-json">Project JSON</label
             ><textarea
@@ -160,7 +155,7 @@
         </section>
       </div>
       <footer>
-        <p>Runs locally. Export a project file to back up your work.</p>
+        <p>Export project for a backup of your browser data.</p>
         <details>
           <summary>How decisions are made</summary>
           <p>
@@ -212,6 +207,6 @@
       >This worksheet needs JavaScript to calculate assignments
       locally.</noscript
     >
-    <script type="module" src="./src/app.js?v=0.2.0"></script>
+    <script type="module" src="./src/app.js?v=0.2.1"></script>
   </body>
 </html>

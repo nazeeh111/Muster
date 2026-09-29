@@ -1,5 +1,5 @@
 // Exact interval search with a flow relaxation. All times are parsed UTC instants.
-import { overlaps } from "./time.js?v=0.2.0";
+import { overlaps } from "./time.js?v=0.2.1";
 
 const key = (positionId, personId) => `${positionId}\0${personId}`;
 const compare = (a, b) => {

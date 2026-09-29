@@ -1,12 +1,12 @@
-import { validateModel } from "./model.js?v=0.2.0";
-import { example } from "./example.js?v=0.2.0";
+import { validateModel } from "./model.js?v=0.2.1";
+import { example } from "./example.js?v=0.2.1";
 import {
   STORAGE_KEY,
   MAX_INPUT_BYTES,
   parseProject,
   saveModel,
   assignmentsCsv,
-} from "./state.js?v=0.2.0";
+} from "./state.js?v=0.2.1";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, attrs = {}, ...children) {
@@ -139,7 +139,7 @@ function calculate() {
   $("solve").disabled = true;
   $("cancel").hidden = false;
   try {
-    worker = new Worker(new URL("./worker.js?v=0.2.0", import.meta.url), {
+    worker = new Worker(new URL("./worker.js?v=0.2.1", import.meta.url), {
       type: "module",
     });
   } catch {
@@ -184,8 +184,10 @@ function calculate() {
 function render() {
   $("project-title").textContent = model.title;
   $("project-kind").textContent = synthetic
-    ? "SYNTHETIC EXAMPLE"
-    : "LOCAL PROJECT";
+    ? "Synthetic example"
+    : model.format === "muster/v2"
+      ? "Timed shifts"
+      : "Named blocks";
   $("save-state").textContent = saveMessage;
   $("undo").disabled = !history.length;
   if (!jsonDirty) $("project-json").value = JSON.stringify(model, null, 2);
@@ -289,7 +291,7 @@ function render() {
       ),
     );
   $("result-status").textContent = result
-    ? `${result.assignments.length} of ${model.positions.length} positions filled · ${counted(result.objective.changes, "changed reference assignment")}${result.optimal === false ? " · Best found, not proven optimal" : ""}`
+    ? `${result.assignments.length}/${model.positions.length} filled · ${counted(result.objective.changes, "reference change")}${result.optimal === false ? " · Not proven optimal" : ""}`
     : "Inputs changed. Recalculate to update the proposal.";
   renderExplanation();
   renderPeople();
@@ -297,7 +299,7 @@ function render() {
 }
 function renderExplanation() {
   const area = $("explanation");
-  area.replaceChildren(el("p", { class: "eyebrow" }, "CAPACITY"));
+  area.replaceChildren();
   area.classList.toggle("short", Boolean(result?.shortage));
   if (!result) {
     area.append(
@@ -316,98 +318,53 @@ function renderExplanation() {
   }
   if (result.optimal === false) {
     area.append(
-      el("h3", {}, "Search limit reached"),
-      el(
-        "p",
-        {},
-        "This proposal respects the declared constraints. A better assignment may exist.",
-      ),
+      el("h3", { class: "result-unproven" }, "Not proven optimal"),
+      el("p", {}, "Search limit reached. A better assignment may exist."),
+      el("dl", { class: "facts" },
+        el("dt", {}, "Feasible coverage"),
+        el("dd", {}, `${result.assignments.length}/${model.positions.length}`),
+        el("dt", {}, "Unfilled"),
+        el("dd", {}, result.unfilled.length)),
     );
   } else if (result.shortage) {
     const s = result.shortage;
     area.append(
-      el(
-        "h3",
-        {},
-        s.scope === "all-positions"
-          ? "Whole-rota coverage limit"
-          : "A collective shortage",
-      ),
-      el(
-        "p",
-        {},
-        `These ${counted(s.demand, "position")} can receive at most ${counted(s.capacity, "assignment")} under the current inputs. ${s.deficit} must remain unfilled.`,
-      ),
-      ...(s.scope === "all-positions"
-        ? []
-        : [
-            el(
-              "ul",
-              {},
-              s.positionIds.map((id) => el("li", {}, label("positions", id))),
-            ),
-          ]),
-      el(
-        "button",
-        { onclick: () => showView("people") },
-        "Review availability",
-      ),
+      el("h3", {}, s.scope === "all-positions" ? "Whole-rota limit" : "Subset limit"),
+      el("dl", { class: "facts" },
+        el("dt", {}, "Maximum coverage"),
+        el("dd", {}, `${s.capacity}/${s.demand}`),
+        el("dt", {}, "Minimum unfilled"),
+        el("dd", { class: "result-gap" }, s.deficit)),
+      ...(s.scope === "all-positions" ? [] : [
+        el("h4", {}, "Positions in this subset"),
+        el("ul", {}, s.positionIds.map((id) => el("li", {}, label("positions", id)))),
+      ]),
+      el("button", { onclick: () => showView("people") }, "Review availability"),
     );
-    if (s.scope === "all-positions") {
-      area.append(
-        el(
-          "p",
-          {},
-          "This bound covers the whole rota, not a smaller bottleneck group.",
-        ),
-      );
-    } else if (s.personIds.length) {
+    if (s.scope !== "all-positions" && s.personIds.length) {
       area.append(
         el("h4", {}, "Eligible people"),
-        ...s.limits
-          .filter((x) => x.kind === "person-total")
-          .map((limit) =>
-            el(
-              "details",
-              {},
-              el(
-                "summary",
-                {},
-                `${label("people", limit.personId, "name")}: ${counted(limit.remaining, "assignment")} left`,
-              ),
-              el(
-                "ul",
-                {},
-                s.limits
-                  .filter(
-                    (x) =>
-                      x.kind === "person-block" &&
-                      x.personId === limit.personId,
-                  )
-                  .map((x) =>
-                    el(
-                      "li",
-                      {},
-                      `${label("blocks", x.blockId)}: ${x.remaining ? "one position maximum" : "occupied by a lock"}`,
-                    ),
-                  ),
-              ),
-            ),
+        ...s.limits.filter((x) => x.kind === "person-total").map((limit) =>
+          el("details", {},
+            el("summary", {}, `${label("people", limit.personId, "name")}: ${counted(limit.remaining, "assignment")} left`),
+            el("ul", {}, s.limits.filter((x) => x.kind === "person-block" && x.personId === limit.personId)
+              .map((x) => el("li", {}, `${label("blocks", x.blockId)}: ${x.remaining ? "one position maximum" : "occupied by a lock"}`))),
           ),
+        ),
       );
-    } else
-      area.append(
-        el("p", {}, "No eligible person is available for these positions."),
-      );
-  } else
+    } else if (s.scope !== "all-positions") {
+      area.append(el("p", {}, "No eligible person is available for these positions."));
+    }
+  } else {
     area.append(
-      el("h3", {}, "All positions covered"),
-      el(
-        "p",
-        {},
-        "Locks retained. No availability or capacity conflicts in the declared inputs.",
-      ),
+      el("h3", {}, "Full coverage"),
+      el("dl", { class: "facts" },
+        el("dt", {}, "Coverage"),
+        el("dd", {}, `${result.assignments.length}/${model.positions.length}`),
+        el("dt", {}, "Locks retained"),
+        el("dd", {}, model.positions.filter((p) => p.lockedPersonId != null).length)),
     );
+  }
 
   if (result.changes.length) {
     area.append(
@@ -429,14 +386,12 @@ function renderExplanation() {
     el(
       "div",
       { class: "measure" },
-      el("strong", {}, "Assignment counts"),
-      el(
-        "p",
-        {},
-        result.loads
-          .map((x) => `${label("people", x.personId, "name")} ${x.count}`)
-          .join(" · "),
-      ),
+      el("strong", {}, "Assignments per person"),
+      el("dl", { class: "facts loads" },
+        result.loads.map((x) => [
+          el("dt", {}, label("people", x.personId, "name")),
+          el("dd", {}, x.count),
+        ])),
       el(
         "details",
         {},
@@ -444,7 +399,7 @@ function renderExplanation() {
         el(
           "p",
           {},
-          `Sum of squared assignment counts: ${result.objective.squaredLoads}.${result.optimal === false ? " This is the score of the current proposal." : " Minimized after coverage and reference preservation."}`,
+          `Squared assignment sum: ${result.objective.squaredLoads}.${result.optimal === false ? " Current proposal; not proven minimum." : " Minimum after coverage and reference preservation."}`,
         ),
       ),
     ),

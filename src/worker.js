@@ -1,4 +1,4 @@
-import { solve } from "./solver.js?v=0.2.0";
+import { solve } from "./solver.js?v=0.2.1";
 self.onmessage = ({ data }) => {
   try {
     self.postMessage({ id: data.id, result: solve(data.model, { budgetMs: 6500 }) });

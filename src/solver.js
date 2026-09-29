@@ -1,6 +1,6 @@
-import { validateModel } from "./model.js?v=0.2.0";
-import { interval, overlaps } from "./time.js?v=0.2.0";
-import { solveTimed } from "./timed-solver.js?v=0.2.0";
+import { validateModel } from "./model.js?v=0.2.1";
+import { interval, overlaps } from "./time.js?v=0.2.1";
+import { solveTimed } from "./timed-solver.js?v=0.2.1";
 
 function edge(graph, from, to, capacity, cost = 0) {
   const forward = { to, reverse: graph[to].length, capacity, cost };
