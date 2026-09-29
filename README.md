@@ -1,10 +1,12 @@
 # Muster
 
-**Repair a volunteer rota without losing the commitments that still work.**
+A local browser worksheet for volunteer rotas, locked commitments and timed shifts.
 
-Muster is a local browser worksheet for small events. Mark a cancellation, keep settled assignments locked, and calculate a proposal that fills as many positions as possible while minimizing changes. Named blocks retain the original shortage explanation. Timed shifts can overlap; when the search proves a shortage, Muster reports the maximum coverage for the whole rota.
+[Open worksheet](https://nazeeh111.github.io/Muster/) · [Download v0.2.1 source](https://github.com/nazeeh111/Muster/releases/tag/v0.2.1)
 
-[Open Muster](https://nazeeh111.github.io/Muster/).
+![Synthetic timed rota: Early and Late assigned to Alex, Bridge unfilled](docs/worksheet.jpg)
+
+Mark a cancellation, keep settled assignments locked, and calculate a proposal that fills as many positions as possible while minimizing changes. For named blocks, shortage explanations identify groups of positions that cannot all be filled. Timed shifts can overlap; when the search proves a shortage, Muster reports the maximum coverage for the whole rota.
 
 No account, backend, runtime dependencies, or schedule uploads. Inputs stay in this browser unless you export them. The included community-pantry rota is synthetic.
 
