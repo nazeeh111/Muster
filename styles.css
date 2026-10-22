@@ -147,3 +147,5 @@ legend { font-size: 12px; font-weight: 600; }
   .result-actions button { font-size: 12px; }
   .shift-endpoint { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
+
+@media (max-width: 700px) { .table-wrap { contain: layout paint; } }
