@@ -149,3 +149,9 @@ legend { font-size: 12px; font-weight: 600; }
 }
 
 @media (max-width: 700px) { .table-wrap { contain: layout paint; } }
+
+/* A compact reading order above the existing worksheet. */
+.masthead-purpose{margin:0;color:var(--muted,#56616a);font-size:13px}
+.workflow-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;list-style:decimal-leading-zero;padding:18px 0 18px 26px;margin:0;border-bottom:1px solid var(--line,#ccd1d5)}
+.workflow-guide li{padding-left:4px;font-size:13px}.workflow-guide strong,.workflow-guide span{display:block}.workflow-guide span{color:var(--muted,#56616a);margin-top:4px}
+@media(max-width:650px){.masthead-purpose{max-width:none;text-align:left}.workflow-guide{grid-template-columns:1fr;gap:10px}}
