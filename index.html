@@ -13,7 +13,7 @@
     />
     <title>Muster</title>
     <link rel="icon" href="./favicon.svg?v=0.2.1" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=0.2.1" />
+    <link rel="stylesheet" href="./styles.css?v=0.2.1&amp;ui=9d7fa93e" />
   </head>
   <body>
     <header class="masthead">
@@ -71,17 +71,17 @@
               <div
                 class="table-wrap"
                 tabindex="0"
-                aria-label="Staffing worksheet. Scroll horizontally on narrow screens."
+                aria-label="Staffing worksheet"
               >
-                <table>
+                <table role="table">
                   <thead>
                     <tr>
-                      <th>Position / block</th>
-                      <th>Role</th>
-                      <th>Reference</th>
-                      <th>Proposal</th>
-                      <th>Commitment</th>
-                      <th><span class="sr-only">Edit position</span></th>
+                      <th scope="col">Position / block</th>
+                      <th scope="col">Role</th>
+                      <th scope="col">Reference</th>
+                      <th scope="col">Proposal</th>
+                      <th scope="col">Commitment</th>
+                      <th scope="col"><span class="sr-only">Edit position</span></th>
                     </tr>
                   </thead>
                   <tbody id="rota-body"></tbody>
@@ -208,6 +208,6 @@
       >This worksheet needs JavaScript to calculate assignments
       locally.</noscript
     >
-    <script type="module" src="./src/app.js?v=0.2.1"></script>
+    <script type="module" src="./src/app.js?v=0.2.1&amp;ui=74f01b7a"></script>
   </body>
 </html>

@@ -240,24 +240,29 @@ function render() {
           {},
           el(
             "td",
-            {},
+            { class: "position-cell" },
             el("strong", {}, position.label),
             el("small", {}, block.label),
             block.startAt
               ? el("small", { class: "block-time" }, blockTime(block))
               : null,
           ),
-          el("td", {}, label("roles", position.roleId)),
+          el("td", { class: "role-cell" },
+            el("span", { class: "phone-label", "aria-hidden": "true" }, "Role"),
+            label("roles", position.roleId)),
           el(
             "td",
-            {},
+            { class: "reference-cell" },
+            el("span", { class: "phone-label", "aria-hidden": "true" }, "Reference"),
             position.previousPersonId
               ? label("people", position.previousPersonId, "name")
               : "—",
+            el("span", { class: "phone-arrow", "aria-hidden": "true" }, "→"),
           ),
           el(
             "td",
-            {},
+            { class: "proposal-cell" },
+            el("span", { class: "phone-label", "aria-hidden": "true" }, "Proposal"),
             el(
               "span",
               {
@@ -266,10 +271,10 @@ function render() {
               status,
             ),
           ),
-          el("td", {}, lock),
+          el("td", { class: "commitment-cell" }, lock),
           el(
             "td",
-            {},
+            { class: "edit-cell" },
             el(
               "button",
               {

@@ -155,3 +155,32 @@ legend { font-size: 12px; font-weight: 600; }
 .workflow-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;list-style:decimal-leading-zero;padding:18px 0 18px 26px;margin:0;border-bottom:1px solid var(--line,#ccd1d5)}
 .workflow-guide li{padding-left:4px;font-size:13px}.workflow-guide strong,.workflow-guide span{display:block}.workflow-guide span{color:var(--muted,#56616a);margin-top:4px}
 @media(max-width:650px){.masthead-purpose{max-width:none;text-align:left}.workflow-guide{grid-template-columns:1fr;gap:10px}}
+
+.phone-label, .phone-arrow { display: none; }
+@media (max-width: 650px) {
+  .table-wrap { border: 0; }
+  .table-wrap table { display: block; min-width: 0; }
+  .table-wrap thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+  .table-wrap tbody { display: block; }
+  .table-wrap tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "position role" "reference proposal" "commitment edit";
+    gap: 10px 24px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .table-wrap tr:last-child { border-bottom: 1px solid var(--line); }
+  .table-wrap td { min-width: 0; padding: 0; border: 0; overflow-wrap: anywhere; }
+  .position-cell { grid-area: position; }
+  .role-cell { grid-area: role; text-align: right; color: var(--muted); }
+  .reference-cell { grid-area: reference; position: relative; }
+  .proposal-cell { grid-area: proposal; }
+  .commitment-cell { grid-area: commitment; }
+  .edit-cell { grid-area: edit; justify-self: end; }
+  .phone-label { display: block; color: var(--muted); font-size: 11px; font-weight: 400; margin-bottom: 3px; }
+  .phone-arrow { display: block; position: absolute; right: -18px; bottom: 0; color: var(--muted); }
+  .table-wrap td button { min-height: 36px; padding: 7px 10px; }
+  .table-wrap td[colspan] { grid-column: 1 / -1; }
+  .under-table span { display: none; }
+}
