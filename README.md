@@ -74,4 +74,4 @@ npm test
 
 Tests include seeded exhaustive enumeration of tiny schedules, simultaneous positions, lock conflicts, objective ordering, shortage capacity, input validation, storage failures and CSV handling. CI runs the same suite on Node 22 and 24. The browser UI is a separate manual acceptance surface.
 
-Original MIT software. Flow optimization and scheduling are established techniques. [OR-Tools](https://developers.google.com/optimization/scheduling/employee_scheduling) and [Timefold](https://docs.timefold.ai/employee-shift-scheduling/latest/introduction) address much broader scheduling needs. Muster's focus is a small, inspectable, local repair workflow; no claim of solver novelty or demonstrated organizational adoption is made.
+Original [MIT](LICENSE) software. Muster uses established flow optimization and scheduling techniques for a small, inspectable, local repair workflow.
