@@ -39,16 +39,17 @@
             <h1 id="project-title"></h1>
             <div class="project-meta"><span id="project-kind"></span><span id="save-state"></span></div>
           </div>
-          <div class="actions">
-            <button id="undo" disabled>Undo</button
-            ><button id="import">Import project</button
-            ><button id="export">Export project</button
-            ><input
-              id="file"
-              type="file"
-              accept=".json,application/json"
-              hidden
-            /><button id="reset">Example</button>
+          <div class="project-controls">
+            <button id="undo" disabled>Undo</button>
+            <details class="project-menu">
+              <summary>Project actions</summary>
+              <div class="actions">
+                <button id="import">Import project</button>
+                <button id="export">Export project</button>
+                <input id="file" type="file" accept=".json,application/json" hidden />
+                <button id="reset">Example</button>
+              </div>
+            </details>
           </div>
         </div>
         <nav class="tabs" aria-label="Worksheet sections">
@@ -58,7 +59,10 @@
           ><button data-view="setup">Project setup</button>
         </nav>
         <section id="rota-view">
+          <details class="workflow-help">
+            <summary>Repair workflow</summary>
           <ol class="workflow-guide" aria-label="Repair workflow"><li><strong>Change the inputs</strong><span>Record a cancellation or edit availability.</span></li><li><strong>Calculate repair</strong><span>Locks stay fixed. Coverage comes first.</span></li><li><strong>Review the changes</strong><span>Compare reference and proposal before exporting.</span></li></ol>
+          </details>
           <div class="solve-bar">
             <p id="result-status">No current proposal.</p>
             <div class="actions">
