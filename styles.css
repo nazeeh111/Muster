@@ -293,3 +293,6 @@ dialog { border-radius: 5px; }
   .table-wrap tr:last-child { border-bottom: 1px solid var(--line); }
   .under-table { padding-top: 2px; }
 }
+
+/* Keep long participant names and explanations within their containers. */
+td, .explanation, .person h4, .setup-item > span { overflow-wrap: anywhere; }
