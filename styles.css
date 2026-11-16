@@ -223,3 +223,73 @@ legend { font-size: 12px; font-weight: 600; }
   .project-menu .actions { grid-template-columns: 1fr; }
   .project-menu #reset { grid-column: auto; }
 }
+
+/* A calm working surface: the comparison stays central, with the reason for
+   a shortage alongside it. Colour supplements the explicit result labels. */
+:root {
+  --ink: #243c48;
+  --muted: #536770;
+  --line: #d0dbdd;
+  --soft: #edf3f3;
+  --action: #d6eadf;
+  --error: #a2262c;
+  --warning: #795111;
+}
+body { background: #f3f7f6; }
+.masthead { background: #243c48; border-color: #243c48; padding: 16px 28px; }
+.brand { font-size: 29px; }
+.masthead-purpose { color: #d5e4e1; }
+main { max-width: 1500px; padding: 25px 28px 36px; }
+.project-bar { align-items: flex-start; margin-bottom: 24px; }
+.project-meta { font-size: 13px; gap: 6px 18px; }
+.project-controls { flex-wrap: wrap; }
+.project-menu { position: relative; }
+.project-menu .actions { position: absolute; z-index: 3; right: 0; width: 270px; background: #fff; box-shadow: 0 8px 20px #243c4822; }
+.tabs { gap: 24px; border-color: #bdcdcf; }
+.tabs button { background: transparent; min-height: 44px; font-size: 13px; }
+.tabs .active { box-shadow: inset 0 -3px #2b665d; }
+.workflow-help { padding: 11px 0; }
+.solve-bar { padding: 21px 0 18px; }
+.proposal-label { display: block; color: var(--muted); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.solve-bar p { font-size: 19px; }
+.primary { background: #2b665d; border-color: #2b665d; color: #fff; }
+.primary:hover { background: #20564e; border-color: #20564e; color: #fff; }
+.worksheet { grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
+.table-wrap { background: #fff; border-color: #c8d5d5; border-radius: 4px; }
+th { background: #eaf1f0; color: #3c525a; padding: 12px; }
+td { padding: 14px 12px; border-color: #e0e8e7; }
+td:first-child strong { font-size: 14px; }
+.tag.changed { font-weight: 600; }
+.explanation { background: #e8f1ee; border: 1px solid #c2d7d0; border-top: 4px solid #2b665d; border-radius: 4px; padding: 18px; max-width: none; }
+.explanation h3 { font-size: 18px; }
+.explanation .facts { padding-bottom: 12px; border-bottom: 1px solid #c2d7d0; }
+.explanation .facts dd { font-size: 19px; }
+.explanation .loads dd { font-size: 14px; }
+.message { background: #edf3f3; }
+.message.error { background: #fff4ef; }
+.people-list, .person, .setup-item { background: #fff; }
+.person { padding: 18px; }
+.setup-item { padding: 11px; }
+dialog { border-radius: 5px; }
+@media (max-width: 1050px) {
+  .worksheet { grid-template-columns: minmax(0, 1fr); }
+  .explanation { max-width: none; }
+}
+@media (max-width: 650px) {
+  .masthead { padding: 14px 16px; }
+  .brand { font-size: 26px; }
+  main { padding: 20px 16px 32px; }
+  .project-bar { margin-bottom: 18px; }
+  .project-controls { width: 100%; position: relative; }
+  .project-menu { flex: 0 1 auto; position: static; }
+  .project-menu .actions { right: 0; left: auto; width: min(270px, 100%); grid-template-columns: 1fr; }
+  .project-menu #reset { grid-column: auto; }
+  .tabs { gap: 18px; }
+  .solve-bar { gap: 10px; }
+  .solve-bar p { font-size: 16px; }
+  .proposal-label { font-size: 12px; }
+  .table-wrap { background: transparent; }
+  .table-wrap tr { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 16px; margin-bottom: 9px; }
+  .table-wrap tr:last-child { border-bottom: 1px solid var(--line); }
+  .under-table { padding-top: 2px; }
+}

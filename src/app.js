@@ -1,12 +1,12 @@
-import { validateModel } from "./model.js?v=0.2.1";
-import { example } from "./example.js?v=0.2.1";
+import { validateModel } from "./model.js?v=0.2.2-dev.0";
+import { example } from "./example.js?v=0.2.2-dev.0";
 import {
   STORAGE_KEY,
   MAX_INPUT_BYTES,
   parseProject,
-  saveModel,
   assignmentsCsv,
-} from "./state.js?v=0.2.1";
+} from "./state.js?v=0.2.2-dev.0&session=2";
+import { PlanningSession, readStoredProject } from "./session.js?v=0.2.2-dev.0";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, attrs = {}, ...children) {
@@ -40,6 +40,22 @@ let storedRaw = null,
   editorDelete = null,
   jsonDirty = false,
   memoryOnly = false;
+let session, saveSequence = 0, editorRevision = 0;
+let solveFocusWatch = null, editorReturn = null, editorGeneration = 0;
+const editorCloseQueue = [];
+function watchFocusActivity() {
+  let changed = false;
+  const mark = () => { changed = true; };
+  for (const type of ["pointerdown", "keydown", "focusin"]) document.addEventListener(type, mark, true);
+  return {
+    changed: () => changed,
+    dispose: () => { for (const type of ["pointerdown", "keydown", "focusin"]) document.removeEventListener(type, mark, true); },
+  };
+}
+function focusKey(element) { return element?.getAttribute?.("data-focus-key") || null; }
+function focusForKey(key) {
+  return [...document.querySelectorAll("[data-focus-key]")].find((element) => focusKey(element) === key);
+}
 const counted = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const clone = (x) => structuredClone(x);
 const label = (collection, id, key = "label") =>
@@ -78,6 +94,17 @@ function ask(text) {
     dialog.showModal();
   });
 }
+function staleNotice() {
+  const text = "The project changed while confirmation was open. Your work is retained; review it and try again.";
+  message(text, true);
+  if ($("editor").open) $("editor-error").textContent = text;
+}
+async function askCurrent(text) {
+  const before = revision;
+  if (!(await ask(text))) return false;
+  if (before !== revision) { staleNotice(); return false; }
+  return true;
+}
 function download(name, data, type = "application/json") {
   const url = URL.createObjectURL(new Blob([data], { type }));
   const a = el("a", { href: url, download: name });
@@ -87,25 +114,32 @@ function download(name, data, type = "application/json") {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function persist() {
-  let saved;
-  try {
-    saved = saveModel(window.localStorage, model);
-  } catch {
-    saved = {
-      ok: false,
-      message: "Changes are in memory only. Export a project before closing.",
-    };
-  }
-  memoryOnly = !saved.ok;
-  saveMessage = saved.ok ? "Saved in this browser" : saved.message;
-  if (!saved.ok) message(saved.message, true);
+  const current = ++saveSequence;
+  memoryOnly = true;
+  saveMessage = "Saving… Export before closing.";
+  session.save(model).then((saved) => {
+    if (current !== saveSequence) return;
+    memoryOnly = !saved.ok;
+    saveMessage = saved.ok ? "Saved in this browser" : saved.message;
+    if (!saved.ok) {
+      if (saved.kind === "conflict") { revision++; stop(); result = null; }
+      message(saved.message, true);
+    }
+    render();
+  });
 }
-function stop() {
+
+function stop(restoreSolveFocus = false) {
+  const watch = solveFocusWatch;
+  solveFocusWatch = null;
+  watch?.dispose();
   if (worker) worker.terminate();
   worker = null;
   clearTimeout(timer);
   $("cancel").hidden = true;
   $("solve").disabled = false;
+  if (restoreSolveFocus && watch && !watch.changed() && document.activeElement === document.body && document.hasFocus())
+    $("solve").focus();
 }
 function update(next) {
   validateModel(next);
@@ -136,23 +170,27 @@ function calculate() {
   render();
   const id = ++revision;
   $("result-status").textContent = "Calculating…";
+  const returnToSolve = document.activeElement === $("solve");
   $("solve").disabled = true;
+  if (returnToSolve) solveFocusWatch = watchFocusActivity();
   $("cancel").hidden = false;
   try {
-    worker = new Worker(new URL("./worker.js?v=0.2.1", import.meta.url), {
+    worker = new Worker(new URL("./worker.js?v=0.2.2-dev.0", import.meta.url), {
       type: "module",
     });
   } catch {
-    stop();
+    stop(true);
     message(
       "The solver could not start. Serve the app over HTTP using the README instructions.",
       true,
     );
+    render();
     return;
   }
+  const activeWorker = worker;
   worker.onmessage = ({ data }) => {
-    if (data.id !== revision) return;
-    stop();
+    if (data.id !== revision || worker !== activeWorker) return;
+    stop(true);
     if (data.error) {
       message(data.error, true);
       render();
@@ -163,7 +201,8 @@ function calculate() {
     render();
   };
   worker.onerror = () => {
-    stop();
+    if (id !== revision || worker !== activeWorker) return;
+    stop(true);
     message(
       "The solver could not load. Reload the app; your saved inputs are retained.",
       true,
@@ -172,7 +211,7 @@ function calculate() {
   };
   timer = setTimeout(() => {
     revision++;
-    stop();
+    stop(true);
     message(
       "The solver exceeded its 8-second limit. Inputs are retained. Reduce the project size and try again.",
       true,
@@ -182,6 +221,7 @@ function calculate() {
   worker.postMessage({ id, model: clone(model) });
 }
 function render() {
+  const focusedKey = focusKey(document.activeElement);
   $("project-title").textContent = model.title;
   $("project-kind").textContent = synthetic
     ? "Synthetic example"
@@ -218,6 +258,7 @@ function render() {
         "button",
         {
           "aria-label": `${position.lockedPersonId ? "Unlock" : "Lock proposal for"} ${position.label}`,
+          "data-focus-key": `position-lock:${position.id}`,
           class: position.lockedPersonId ? "lock-on" : "",
           disabled: !position.lockedPersonId && !proposed,
           onclick: () => {
@@ -279,6 +320,7 @@ function render() {
               "button",
               {
                 "aria-label": `Edit ${position.label}`,
+                "data-focus-key": `position-edit:${position.id}`,
                 onclick: () => editPosition(position),
               },
               "Edit",
@@ -301,6 +343,8 @@ function render() {
   renderExplanation();
   renderPeople();
   renderSetup();
+  if (focusedKey && document.activeElement === document.body && document.hasFocus())
+    focusForKey(focusedKey)?.focus();
 }
 function renderExplanation() {
   const area = $("explanation");
@@ -445,6 +489,7 @@ function renderPeople() {
           "button",
           {
             "aria-label": `Edit person ${person.name}`,
+            "data-focus-key": `person-edit:${person.id}`,
             onclick: () => editPerson(person),
           },
           "Edit",
@@ -481,6 +526,7 @@ function renderSetup() {
             "button",
             {
               "aria-label": `Edit ${kind === "roles" ? "role" : "block"} ${item.label}`,
+              "data-focus-key": `${kind}-edit:${item.id}`,
               onclick: () => editNamed(kind, item),
             },
             "Edit",
@@ -636,6 +682,9 @@ function select(title, name, items, value) {
   );
 }
 function openEditor(title, fields, onSave, onDelete = null) {
+  editorGeneration++;
+  editorReturn = { element: document.activeElement, key: focusKey(document.activeElement) };
+  editorRevision = revision;
   $("editor-title").textContent = title;
   $("editor-fields").replaceChildren(...fields);
   $("editor-error").textContent = "";
@@ -693,7 +742,7 @@ function editPerson(person = null) {
             throw new Error(
               "This person has a reference assignment or lock. Edit those positions first so commitments are not silently removed.",
             );
-          if (await ask(`Remove ${p.name} from this project?`))
+          if (await askCurrent(`Remove ${p.name} from this project?`))
             apply((data) => {
               data.people = data.people.filter((x) => x.id !== p.id);
             });
@@ -753,7 +802,7 @@ function editPosition(position = null) {
     position
       ? async () => {
           if (
-            await ask(
+            await askCurrent(
               `Remove ${p.label} and its reference/lock from this project?`,
             )
           )
@@ -808,7 +857,7 @@ function editNamed(kind, item = null) {
               `This ${singular} is used by a position. Edit or remove that position first.`,
             );
           if (
-            !(await ask(
+            !(await askCurrent(
               `Remove ${value.label}? Its entries in people's ${kind === "roles" ? "eligibility" : "availability"} will also be removed.`,
             ))
           )
@@ -824,13 +873,36 @@ function editNamed(kind, item = null) {
       : null,
   );
 }
-async function replaceProject(input) {
+function beginEditorClose() {
+  editorCloseQueue.push({ watch: watchFocusActivity(), anchor: editorReturn, generation: editorGeneration });
+  editorReturn = null;
+}
+function closeEditor() {
+  beginEditorClose();
+  $("editor").close();
+}
+$("editor").addEventListener("cancel", beginEditorClose);
+$("editor").addEventListener("close", () => {
+  const closed = editorCloseQueue.shift();
+  if (!closed) return;
+  closed.watch.dispose();
+  const active = document.activeElement;
+  const focusStillOwned = active === document.body || $("editor").contains(active);
+  if (closed.generation === editorGeneration && !$("editor").open &&
+      !closed.watch.changed() && focusStillOwned && document.hasFocus()) {
+    const target = closed.anchor?.key ? focusForKey(closed.anchor.key) : closed.anchor?.element;
+    if (target?.isConnected) target.focus();
+  }
+});
+
+async function replaceProject(input, expectedDraft = null) {
   validateModel(input);
   if (
-    await ask(
+    await askCurrent(
       "Replace the current project? Export first if you need a durable copy. You can undo this replacement during this session.",
     )
   ) {
+    if (expectedDraft !== null && $("project-json").value !== expectedDraft) { staleNotice(); return false; }
     update(input);
     message("Project loaded. Recalculate to update the proposal.");
     return true;
@@ -840,8 +912,9 @@ async function replaceProject(input) {
 $("editor-form").onsubmit = (event) => {
   event.preventDefault();
   try {
+    if (editorRevision !== revision) throw new Error("The project changed while this editor was open. Your entries are retained; close and reopen it before saving.");
     editorSave(new FormData(event.currentTarget));
-    $("editor").close();
+    closeEditor();
     message("Inputs updated. Recalculate to update the proposal.");
   } catch (error) {
     $("editor-error").textContent = error.message;
@@ -849,12 +922,13 @@ $("editor-form").onsubmit = (event) => {
 };
 $("delete-item").onclick = async () => {
   try {
-    if ((await editorDelete()) !== false) $("editor").close();
+    if (editorRevision !== revision) throw new Error("The project changed while this editor was open. Close and reopen it before removing anything.");
+    if ((await editorDelete()) !== false) closeEditor();
   } catch (error) {
     $("editor-error").textContent = error.message;
   }
 };
-$("close-editor").onclick = () => $("editor").close();
+$("close-editor").onclick = closeEditor;
 for (const button of document.querySelectorAll("[data-view]"))
   button.onclick = () => showView(button.dataset.view);
 $("solve").onclick = calculate;
@@ -895,6 +969,25 @@ $("undo").onclick = () => {
 $("reset").onclick = () => replaceProject(example());
 $("export").onclick = () =>
   download("muster-project.json", JSON.stringify(model, null, 2) + "\n");
+$("reload-saved").onclick = async () => {
+  const before = revision, draftBefore = $("project-json").value;
+  if (!(await askCurrent("Reload the saved project? Export your current work first; local changes and undo history will be discarded."))) return;
+  try {
+    const raw = await session.currentRaw();
+    if (before !== revision || draftBefore !== $("project-json").value)
+      throw new Error("Inputs changed during reload.");
+    const next = raw === null ? example() : readStoredProject(raw);
+    validateModel(next);
+    stop(); revision++; saveSequence++;
+    session.adopt(raw);
+    model = next; result = null; history = []; jsonDirty = false;
+    synthetic = raw === null; memoryOnly = false;
+    saveMessage = raw === null ? "Example data" : "Restored from this browser";
+    message("Saved project reloaded."); render(); calculate();
+  } catch {
+    message("The saved project could not be reloaded. Your current work is retained; export it before closing.", true);
+  }
+};
 $("csv").onclick = () => {
   if (result)
     download(
@@ -904,15 +997,16 @@ $("csv").onclick = () => {
     );
 };
 $("accept").onclick = async () => {
-  if (
-    !result ||
-    !(await ask(
-      "Use this proposal as the new reference? Future repairs will measure changes from these assignments. Unfilled positions will have no reference.",
-    ))
-  )
+  const proposal = result, before = revision;
+  if (!proposal || !(await ask(
+    "Use this proposal as the new reference? Future repairs will measure changes from these assignments. Unfilled positions will have no reference.",
+  ))) return;
+  if (revision !== before || result !== proposal) {
+    message("The proposal changed while confirmation was open. Recalculate and review it before accepting.", true);
     return;
+  }
   const assignments = new Map(
-    result.assignments.map((x) => [x.positionId, x.personId]),
+    proposal.assignments.map((x) => [x.positionId, x.personId]),
   );
   apply((data) =>
     data.positions.forEach((x) => {
@@ -928,19 +1022,22 @@ $("project-json").oninput = () => {
   $("discard-json").hidden = false;
 };
 $("discard-json").onclick = async () => {
+  const draftBefore = $("project-json").value;
   if (
-    await ask(
+    await askCurrent(
       "Discard the unapplied JSON draft and reload the current worksheet inputs?",
     )
   ) {
+    if ($("project-json").value !== draftBefore) { staleNotice(); return; }
     jsonDirty = false;
     render();
   }
 };
 $("apply-json").onclick = async () => {
   try {
-    if (await replaceProject(parseProject($("project-json").value))) {
-      jsonDirty = false;
+    const draft = $("project-json").value;
+    if (await replaceProject(parseProject(draft), draft)) {
+      if ($("project-json").value === draft) jsonDirty = false;
       render();
     }
   } catch (error) {
@@ -976,7 +1073,7 @@ $("recover-download").onclick = () =>
   download("muster-saved-recovery.txt", storedRaw ?? "", "text/plain");
 $("recover-reset").onclick = async () => {
   if (
-    await ask(
+    await askCurrent(
       "Replace the unreadable saved project? Download its saved bytes first if you need to recover it.",
     )
   ) {
@@ -992,8 +1089,8 @@ $("recover-reset").onclick = async () => {
 };
 try {
   storedRaw = window.localStorage.getItem(STORAGE_KEY);
-  if (storedRaw) {
-    model = parseProject(storedRaw);
+  if (storedRaw !== null) {
+    model = readStoredProject(storedRaw);
     validateModel(model);
     synthetic = false;
     saveMessage = "Restored from this browser";
@@ -1011,6 +1108,23 @@ try {
       "Browser storage is unavailable. Export before closing to keep your work.";
   }
 }
+session = new PlanningSession({
+  storage: () => window.localStorage,
+  locks: navigator.locks,
+  uuid: typeof globalThis.crypto?.randomUUID === "function" ? () => crypto.randomUUID() : null,
+  expectedRaw: storedRaw,
+});
+window.addEventListener("storage", (event) => {
+  if (event.key !== STORAGE_KEY && event.key !== null) return;
+  try {
+    if (!session.differs(window.localStorage.getItem(STORAGE_KEY))) return;
+  } catch { /* A denied read is treated as an unsafe save state. */ }
+  saveSequence++; revision++; stop(); result = null;
+  memoryOnly = true;
+  saveMessage = "Another tab changed the saved project. Export your work or reload the saved project.";
+  message(saveMessage, true);
+  render();
+});
 if (!recovery) {
   render();
   calculate();

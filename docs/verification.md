@@ -31,3 +31,12 @@ Local work on September 27, 2026, macOS arm64, Node 24.14.0:
 [GitHub CI 36339990912](https://github.com/nazeeh111/Muster/actions/runs/36339990912) passed on `98a3e052d13dfb096dec4d96fd8ada3b679cfc7b`: both Node 22 and 24 ran all 11 tests and browser-module syntax checks. The public GitHub Pages deployment of that revision was exercised in Chrome: the initial 4/5 shortage displayed Ada's remaining capacity and per-block limits; editing Cy's Saturday availability produced 5/5 and retained Bob's lock. Module and worker paths worked under `/Muster/`. Subsequent source formatting does not change the scheduling contract.
 
 These checks do not establish universal solver correctness, accessibility compliance, real-world volunteer availability or suitability for labor-law scheduling. The September 27 browser and CI checks covered disjoint named blocks. Browser storage is neither encrypted storage nor a durable backup.
+
+
+## Workspace and local-session pass (2026-11-16)
+
+The README image is an actual 1280 × 720 native browser capture of the synthetic pantry example. Four of five positions are filled; the two driver positions form a subset with maximum coverage one, so Deliver parcels remains unfilled. The prior timed-rota image was preserved with the task evidence.
+
+In the current source, a native browser check changed Cy's Saturday availability and recalculated five of five positions while retaining Bob's lock. A project JSON was exported, an earlier project imported and recalculated four of five, and the exported project imported back and recalculated five of five. The downloaded assignment CSV contained five rows, including the locked Bob assignment. Keyboard checks retained Calculate focus after completion and Edit Cy focus after Save and Escape. These checks use synthetic data and cover the exercised paths, not every scheduling case or assistive technology.
+
+Native phone layout checks at 320 and 390 CSS pixels kept the project menu and its actions within the viewport. An attempted phone screenshot had a mismatched physical capture width and is not used as visual evidence. The local `npm test` suite passed 59 tests, including generation-guarded saves, async confirmations, worker startup failure and controlled focus lifecycle cases. Browser storage and Web Locks remain subject to the limitations in the README; project export is the backup route.

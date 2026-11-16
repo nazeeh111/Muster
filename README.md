@@ -4,7 +4,11 @@ A local browser worksheet for volunteer rotas, locked commitments and timed shif
 
 [Open worksheet](https://nazeeh111.github.io/Muster/) · [Download v0.2.1 source](https://github.com/nazeeh111/Muster/releases/tag/v0.2.1)
 
-![Synthetic timed rota: Early and Late assigned to Alex, Bridge unfilled](docs/worksheet.jpg)
+The v0.2.1 download is an earlier release. The current source includes the multi-tab save safeguards described below.
+
+![Synthetic pantry rota: four of five positions filled, one driver position unfilled, and a subset shortage explained](docs/worksheet.jpg)
+
+The example leaves one driver position unfilled because the two driver positions share one available person. The explanation shows the affected subset and its maximum coverage.
 
 Mark a cancellation, keep settled assignments locked, and calculate a proposal that fills as many positions as possible while minimizing changes. For named blocks, shortage explanations identify groups of positions that cannot all be filled. Timed shifts can overlap; when the search proves a shortage, Muster reports the maximum coverage for the whole rota.
 
@@ -75,3 +79,19 @@ npm test
 Tests include seeded exhaustive enumeration of tiny schedules, simultaneous positions, lock conflicts, objective ordering, shortage capacity, input validation, storage failures and CSV handling. CI runs the same suite on Node 22 and 24. The browser UI is a separate manual acceptance surface.
 
 Original [MIT](LICENSE) software. Muster uses established flow optimization and scheduling techniques for a small, inspectable, local repair workflow.
+
+### Multiple tabs and local recovery
+
+Muster serializes saves from current-version tabs using the browser's Web Locks
+API and checks the saved generation before writing. If another tab changes the
+saved project, this tab keeps its worksheet in memory and stops claiming it is
+saved. Use **Export project** to preserve this tab's work,
+then **Reload saved project** to discard it deliberately and reopen the saved
+copy. Browsers that cannot provide Web Locks or a secure random generation ID
+keep edits in memory only; export before closing. Storage can also fail because
+of browser privacy settings or quota.
+
+Safe coordination requires all writers to use the current app. An older tab or
+another script that writes the same browser-storage key without the lock cannot
+be coordinated. Close old versions before editing in multiple tabs. This is
+local browser storage, not a backup or an online collaboration service.

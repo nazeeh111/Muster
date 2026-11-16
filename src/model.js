@@ -1,4 +1,4 @@
-import { overlaps, parseTimestamp } from "./time.js?v=0.2.1";
+import { overlaps, parseTimestamp } from "./time.js?v=0.2.2-dev.0";
 
 const ID = /^[a-z][a-z0-9_-]{0,39}$/;
 const MAX_BYTES = 1024 * 1024;

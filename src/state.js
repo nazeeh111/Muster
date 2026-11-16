@@ -39,11 +39,11 @@ export function assignmentsCsv(model, result) {
   return rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
-export function parseProject(text) {
+export function parseProject(text, maxBytes = MAX_INPUT_BYTES) {
   if (
     typeof text !== "string" ||
-    text.length > MAX_INPUT_BYTES ||
-    new TextEncoder().encode(text).length > MAX_INPUT_BYTES
+    text.length > maxBytes ||
+    new TextEncoder().encode(text).length > maxBytes
   )
     throw new Error("Project file is too large (maximum 1 MiB).");
   // Native parsing decides grammar. This bounded lexical pass additionally

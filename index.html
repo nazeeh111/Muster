@@ -12,8 +12,8 @@
       content="Repair a volunteer rota locally. Preserve commitments, understand staffing shortages, and review every change."
     />
     <title>Muster</title>
-    <link rel="icon" href="./favicon.svg?v=0.2.1" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=0.2.1&amp;ui=9d7fa93e" />
+    <link rel="icon" href="./favicon.svg?v=0.2.2-dev.0" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=0.2.2-dev.0&amp;ui=rota-20261116" />
   </head>
   <body>
     <header class="masthead">
@@ -41,11 +41,12 @@
           </div>
           <div class="project-controls">
             <button id="undo" disabled>Undo</button>
+            <button id="export">Export project</button>
             <details class="project-menu">
               <summary>Project actions</summary>
               <div class="actions">
                 <button id="import">Import project</button>
-                <button id="export">Export project</button>
+                <button id="reload-saved">Reload saved project</button>
                 <input id="file" type="file" accept=".json,application/json" hidden />
                 <button id="reset">Example</button>
               </div>
@@ -64,7 +65,7 @@
           <ol class="workflow-guide" aria-label="Repair workflow"><li><strong>Change the inputs</strong><span>Record a cancellation or edit availability.</span></li><li><strong>Calculate repair</strong><span>Locks stay fixed. Coverage comes first.</span></li><li><strong>Review the changes</strong><span>Compare reference and proposal before exporting.</span></li></ol>
           </details>
           <div class="solve-bar">
-            <p id="result-status">No current proposal.</p>
+            <div class="proposal-summary"><span class="proposal-label">Proposal</span><p id="result-status" role="status" aria-live="polite">No current proposal.</p></div>
             <div class="actions">
               <button id="cancel" hidden>Cancel</button
               ><button class="primary" id="solve">Calculate repair</button>
@@ -212,6 +213,6 @@
       >This worksheet needs JavaScript to calculate assignments
       locally.</noscript
     >
-    <script type="module" src="./src/app.js?v=0.2.1&amp;ui=74f01b7a"></script>
+    <script type="module" src="./src/app.js?v=0.2.2-dev.0&amp;ui=rota-focus-7"></script>
   </body>
 </html>
