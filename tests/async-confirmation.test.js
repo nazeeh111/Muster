@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {example} from '../src/example.js';
+import {MAX_INPUT_BYTES} from '../src/state.js';
 
 const source = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
 function segment(begin, end) {
@@ -9,7 +11,7 @@ function segment(begin, end) {
   assert.ok(start>=0 && stop>start, `actual source segment ${begin}`);
   return source.slice(start,stop);
 }
-function deferred() { let resolve; const promise=new Promise(r=>{resolve=r});return {promise,resolve}; }
+function deferred() { let resolve,reject; const promise=new Promise((r,j)=>{resolve=r;reject=j;});return {promise,resolve,reject}; }
 function acceptContext() {
   const dialog=deferred(), nodes={accept:{}}, messages=[], applied=[];
   const proposal={assignments:[{positionId:'p',personId:'a'}]};
@@ -91,4 +93,105 @@ test('actual confirmation helper refuses a changed worksheet and leaves editor o
   vm.createContext(ctx);vm.runInContext(segment('function staleNotice() {','\nfunction download('),ctx);
   const pending=ctx.askCurrent('Remove item?');ctx.revision++;dialog.resolve(true);
   assert.equal(await pending,false);assert.match(nodes['editor-error'].textContent,/changed while confirmation/i);
+});
+
+// Execute the shipped handlers, with only DOM/file-read/confirmation boundaries
+// supplied by this existing dependency-free harness. No restore logic is copied.
+function draftContext(dirty=true) {
+  const dialog=deferred(),asked=deferred(),messages=[],effects=[];let confirmations=0;
+  const nodes=Object.fromEntries(['project-json','json-draft-status','discard-json','download-draft','restore-draft','draft-file'].map(id=>[id,{}]));
+  nodes['project-json'].value='existing editing text';
+  nodes.editor={open:false};
+  const ctx={$:id=>nodes[id],revision:4,jsonDirty:dirty,draftLoadSequence:0,MAX_INPUT_BYTES,TextDecoder,
+    model:example(),result:{assignments:[{positionId:'test',personId:'test'}]},history:[example()],
+    message:(...args)=>messages.push(args),ask:()=>{confirmations++;asked.resolve(true);return dialog.promise;},
+    parseProject:JSON.parse,update:next=>{effects.push('update');ctx.model=next;},persist:()=>effects.push('persist')};
+  const committed=JSON.stringify({model:ctx.model,result:ctx.result,history:ctx.history});
+  vm.createContext(ctx);
+  vm.runInContext(segment('function staleNotice() {','\nfunction download(')+segment('function markJsonDraft() {','\n$("discard-json").onclick'),ctx);
+  const upload=file=>nodes['draft-file'].onchange({target:{files:[file],value:'selected file'}});
+  const assertPreserved=()=>{
+    assert.deepEqual(effects,[]);
+    assert.equal(JSON.stringify({model:ctx.model,result:ctx.result,history:ctx.history}),committed);
+  };
+  const expectConfirmation=async pending=>assert.equal(await Promise.race([asked.promise,pending.then(()=>false)]),true,'replacement must wait for confirmation');
+  return {ctx,nodes,dialog,messages,upload,assertPreserved,expectConfirmation,confirmationCount:()=>confirmations};
+}
+const draftBytes=text=>new TextEncoder().encode(text).buffer;
+
+for(const change of ['typing','worksheet revision']) {
+  test(`actual draft restore refuses a late file after newer ${change}`,async()=>{
+    const h=draftContext(),read=deferred();
+    const pending=h.upload({size:12,arrayBuffer:()=>read.promise});h.dialog.resolve(true);
+    if(change==='typing'){h.nodes['project-json'].value='newer typed draft';h.nodes['project-json'].oninput();}
+    else h.ctx.revision++;
+    read.resolve(draftBytes('older file text'));await pending;
+    assert.equal(h.nodes['project-json'].value,change==='typing'?'newer typed draft':'existing editing text');
+    assert.equal(h.ctx.jsonDirty,true);assert.equal(h.confirmationCount(),0);assert.match(h.messages.at(-1)[0],/changed while restoring/);h.assertPreserved();
+  });
+}
+test('actual draft restore waits for confirmation and preserves declined editing text',async()=>{
+  const h=draftContext(),pending=h.upload(new Blob(['replacement editing text']));
+  await h.expectConfirmation(pending);h.dialog.resolve(false);await pending;
+  assert.equal(h.nodes['project-json'].value,'existing editing text');assert.equal(h.ctx.jsonDirty,true);h.assertPreserved();
+});
+for(const [name,file] of [
+  ['invalid UTF-8',new Blob([new Uint8Array([0xc3,0x28])])],
+  ['oversized',new Blob([' '.repeat(MAX_INPUT_BYTES+1)])],
+  ['read failure',{size:1,arrayBuffer:async()=>{throw Error('controlled read failure');}}],
+]) {
+  test(`actual draft restore retains current text and worksheet on ${name}`,async()=>{
+    const h=draftContext(false);await h.upload(file);
+    assert.equal(h.nodes['project-json'].value,'existing editing text');assert.equal(h.ctx.jsonDirty,false);
+    assert.equal(h.messages.at(-1)[1],true);h.assertPreserved();
+  });
+}
+test('actual draft restore accepts editing text without applying or saving its model',async()=>{
+  const h=draftContext(false),text=JSON.stringify({...example(),title:'Draft title must not become worksheet title'});
+  await h.upload(new Blob([text]));
+  assert.equal(h.nodes['project-json'].value,text);assert.equal(h.ctx.jsonDirty,true);
+  assert.equal(h.nodes['discard-json'].hidden,false);assert.match(h.nodes['json-draft-status'].textContent,/Unapplied draft/);
+  h.assertPreserved();
+});
+test('actual draft restore ignores an older read rejection after a newer file is accepted',async()=>{
+  const h=draftContext(false),read=deferred();
+  const older=h.upload({size:5,arrayBuffer:()=>read.promise});await h.upload(new Blob(['new chosen draft']));
+  const message=h.messages.at(-1)[0];read.reject(Error('stale read failed'));await older;
+  assert.equal(h.nodes['project-json'].value,'new chosen draft');assert.equal(h.messages.at(-1)[0],message);h.assertPreserved();
+});
+
+for (const change of ['typing', 'worksheet revision']) {
+  test(`draft restore retains current work when ${change} changes during confirmation`, async () => {
+    const h = draftContext(), pending = h.upload(new Blob(['replacement after confirmation']));
+    await h.expectConfirmation(pending);
+    if (change === 'typing') {
+      h.nodes['project-json'].value = 'newer confirmation-time text Ω';
+      h.nodes['project-json'].oninput();
+    } else h.ctx.revision++;
+    h.dialog.resolve(true);
+    await pending;
+    assert.equal(h.nodes['project-json'].value, change === 'typing' ? 'newer confirmation-time text Ω' : 'existing editing text');
+    assert.equal(h.ctx.jsonDirty, true);
+    assert.match(h.messages.at(-1)[0], /changed while (restoring|confirmation)/);
+    h.assertPreserved();
+  });
+}
+test('draft restore checks actual read bytes even when declared file size is small', async () => {
+  const h = draftContext(false);
+  await h.upload({size: 1, arrayBuffer: async () => new ArrayBuffer(MAX_INPUT_BYTES + 1)});
+  assert.equal(h.nodes['project-json'].value, 'existing editing text');
+  assert.equal(h.ctx.jsonDirty, false);
+  assert.match(h.messages.at(-1)[0], /too large/);
+  assert.equal(h.confirmationCount(), 0);
+  h.assertPreserved();
+});
+test('older successful draft read cannot replace a newer chosen file', async () => {
+  const h = draftContext(false), read = deferred();
+  const older = h.upload({size: 5, arrayBuffer: () => read.promise});
+  await h.upload(new Blob(['latest chosen text 🐝']));
+  read.resolve(draftBytes('older successful result'));
+  await older;
+  assert.equal(h.nodes['project-json'].value, 'latest chosen text 🐝');
+  assert.equal(h.confirmationCount(), 0);
+  h.assertPreserved();
 });

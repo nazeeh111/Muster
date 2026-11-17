@@ -42,6 +42,8 @@ let storedRaw = null,
   memoryOnly = false;
 let session, saveSequence = 0, editorRevision = 0;
 let solveFocusWatch = null, editorReturn = null, editorGeneration = 0;
+let editorSnapshot = null;
+let draftLoadSequence = 0;
 const editorCloseQueue = [];
 function watchFocusActivity() {
   let changed = false;
@@ -691,6 +693,7 @@ function openEditor(title, fields, onSave, onDelete = null) {
   editorSave = onSave;
   editorDelete = onDelete;
   $("delete-item").hidden = !onDelete;
+  editorSnapshot = JSON.stringify([...new FormData($("editor-form"))]);
   $("editor").showModal();
 }
 function editPerson(person = null) {
@@ -1015,11 +1018,47 @@ $("accept").onclick = async () => {
   );
   calculate();
 };
-$("project-json").oninput = () => {
+function markJsonDraft() {
   jsonDirty = true;
   $("json-draft-status").textContent =
     "Unapplied draft. Calculate uses the saved worksheet inputs.";
   $("discard-json").hidden = false;
+}
+$("project-json").oninput = markJsonDraft;
+$("download-draft").onclick = () =>
+  download("muster-draft.txt", $("project-json").value, "text/plain;charset=utf-8");
+$("restore-draft").onclick = () => $("draft-file").click();
+$("draft-file").onchange = async (event) => {
+  const file = event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+  const sequence = ++draftLoadSequence;
+  const before = revision, draftBefore = $("project-json").value;
+  const ensureCurrent = () => {
+    if (before !== revision || draftBefore !== $("project-json").value)
+      throw new Error("The worksheet or JSON draft changed while restoring this file. Your current work is retained; choose the file again.");
+  };
+  try {
+    if (file.size > MAX_INPUT_BYTES)
+      throw new Error("Draft file is too large (maximum 1 MiB).");
+    const bytes = await file.arrayBuffer();
+    if (sequence !== draftLoadSequence) return;
+    if (bytes.byteLength > MAX_INPUT_BYTES)
+      throw new Error("Draft file is too large (maximum 1 MiB).");
+    let text;
+    try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
+    catch { throw new Error("Draft file must contain valid UTF-8 text."); }
+    ensureCurrent();
+    if (text === draftBefore) { message("Draft already matches the editing text."); return; }
+    if (jsonDirty && !(await askCurrent("Replace the unapplied JSON draft? Download it first if you need to keep its editing text. The worksheet will not be replaced."))) return;
+    if (sequence !== draftLoadSequence) return;
+    ensureCurrent();
+    $("project-json").value = text;
+    markJsonDraft();
+    message("Draft restored for review. The worksheet is unchanged until you validate and replace it.");
+  } catch (error) {
+    if (sequence === draftLoadSequence) message(error.message, true);
+  }
 };
 $("discard-json").onclick = async () => {
   const draftBefore = $("project-json").value;
@@ -1045,7 +1084,9 @@ $("apply-json").onclick = async () => {
   }
 };
 window.addEventListener("beforeunload", (event) => {
-  if (jsonDirty || memoryOnly) {
+  const editorDraft = $("editor").open &&
+    JSON.stringify([...new FormData($("editor-form"))]) !== editorSnapshot;
+  if (jsonDirty || memoryOnly || editorDraft) {
     event.preventDefault();
     event.returnValue = "";
   }
