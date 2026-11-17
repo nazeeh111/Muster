@@ -1,0 +1,94 @@
+{
+  "assignments": [
+    {
+      "positionId": "collection",
+      "personId": "ada"
+    },
+    {
+      "positionId": "welcome",
+      "personId": "bob"
+    },
+    {
+      "positionId": "packing",
+      "personId": "dee"
+    },
+    {
+      "positionId": "restock",
+      "personId": "eve"
+    }
+  ],
+  "unfilled": [
+    "delivery"
+  ],
+  "loads": [
+    {
+      "personId": "ada",
+      "count": 1
+    },
+    {
+      "personId": "cy",
+      "count": 0
+    },
+    {
+      "personId": "bob",
+      "count": 1
+    },
+    {
+      "personId": "dee",
+      "count": 1
+    },
+    {
+      "personId": "eve",
+      "count": 1
+    }
+  ],
+  "changes": [
+    {
+      "positionId": "delivery",
+      "before": "cy",
+      "after": null
+    }
+  ],
+  "objective": {
+    "uncovered": 1,
+    "changes": 1,
+    "squaredLoads": 4
+  },
+  "shortage": {
+    "positionIds": [
+      "collection",
+      "delivery"
+    ],
+    "personIds": [
+      "ada"
+    ],
+    "demand": 2,
+    "capacity": 1,
+    "deficit": 1,
+    "limits": [
+      {
+        "kind": "person-total",
+        "personId": "ada",
+        "maximum": 1,
+        "lockedUsed": 0,
+        "remaining": 1
+      },
+      {
+        "kind": "person-block",
+        "personId": "ada",
+        "blockId": "fri",
+        "maximum": 1,
+        "lockedUsed": 0,
+        "remaining": 1
+      },
+      {
+        "kind": "person-block",
+        "personId": "ada",
+        "blockId": "sat",
+        "maximum": 1,
+        "lockedUsed": 0,
+        "remaining": 1
+      }
+    ]
+  }
+}
