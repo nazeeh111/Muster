@@ -58,6 +58,7 @@ Read the [mechanism walkthrough](docs/mechanism.md) for the graph, tradeoffs, ex
 - **Use proposal as reference** explicitly accepts a new comparison baseline. It does not send or publish assignments.
 - Import is limited to 1 MiB, validates before replacement, rejects duplicate JSON keys and asks before replacing the worksheet. Unknown fields are rejected so misspelled constraints cannot be silently ignored.
 - The advanced JSON editor keeps unapplied drafts across calculations and model changes. Apply or explicitly discard the draft. Unapplied drafts are session-local; navigation warns before discarding them. Export project includes the validated worksheet, not an unapplied draft.
+- **Download JSON draft** saves the current editing text, including unfinished or invalid JSON, as a separate text file. **Restore JSON draft** reads UTF-8 text up to 1 MiB into that editor without replacing the worksheet, proposal, undo history or saved project. An existing unapplied draft requires confirmation before replacement. Validate and replace separately when ready. Draft files are unencrypted and may contain the same private project data as the editor. Restoring uses the textarea's normal newline handling and strips an optional UTF-8 BOM; it is text recovery, not a byte-preserving file archive.
 - Unreadable saved input is retained behind recovery controls. Storage failure keeps changes in memory and warns you to export. Project JSON preserves timed endpoints and their written offsets. Assignment CSV is for review, not project import: untimed exports keep the original five columns; timed exports add Start and End for every position, including unfilled ones. CSV cells are quoted, and formula-like names receive a leading apostrophe for spreadsheet safety.
 
 ## Model limits
@@ -95,3 +96,10 @@ Safe coordination requires all writers to use the current app. An older tab or
 another script that writes the same browser-storage key without the lock cannot
 be coordinated. Close old versions before editing in multiple tabs. This is
 local browser storage, not a backup or an online collaboration service.
+
+Muster requests the browser's leave-page confirmation while a worksheet save is
+pending or failed, an unapplied JSON draft exists, or an open editor has changed
+fields. Cancel leaving to finish saving or copy/export the relevant work. Project
+export includes the worksheet, not unapplied JSON or editor fields. Browsers may
+suppress this confirmation, and a crash or forced close cannot be guarded this
+way. Keep exports for work you need to preserve.
