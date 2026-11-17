@@ -1,14 +1,21 @@
 # Muster
 
-A local browser worksheet for volunteer rotas, locked commitments and timed shifts.
+**An eligible person is not an unlimited person.**
 
-[Open worksheet](https://nazeeh111.github.io/Muster/) · [Download v0.2.1 source](https://github.com/nazeeh111/Muster/releases/tag/v0.2.1)
+Muster repairs volunteer rotas around availability, locked commitments and timed shifts. It finds a proposal, explains a proven coverage limit and keeps the comparison in a local browser worksheet.
 
-The v0.2.1 download is an earlier release. The current source includes the multi-tab save safeguards described below.
+[Open the worksheet](https://nazeeh111.github.io/Muster/) · [Try this complete example](docs/presentation/README.md) · [How the solver works](docs/mechanism.md)
 
-![Synthetic pantry rota: four of five positions filled, one driver position unfilled, and a subset shortage explained](docs/worksheet.jpg)
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/presentation/capacity-mobile.png">
+  <img src="docs/presentation/capacity.png" alt="Actual synthetic pantry rota: Friday collection and Saturday delivery are both eligible for Ada, whose total assignment cap is one. Adding Saturday availability for Cy changes coverage from four of five to five of five. All five assignments are shown; Bob's welcome-desk lock stays fixed. The connecting lines show eligibility, not assignments or the full solver network.">
+</picture>
 
-The example leaves one driver position unfilled because the two driver positions share one available person. The explanation shows the affected subset and its maximum coverage.
+**Two positions can each be fillable while their pair is not.** The [recorded native results](docs/presentation/before-result.json) identify a two-position subset with capacity one. In the [actual browser edit](docs/presentation/worksheet-desktop.png), Cy becomes available on Saturday. The repaired rota fills **5/5** positions with **zero reference changes**, retaining Bob's lock. The input change is hypothetical; it does not obtain anyone's consent.
+
+[Download and reopen the complete case](docs/presentation/worked-example.zip) · [Actual phone worksheet](docs/presentation/worksheet-mobile.png) · [Data, exact objectives and limits](docs/presentation/README.md)
+
+No account, backend, runtime dependencies, schedule uploads or remote fonts. The included rota is synthetic. The [v0.2.1 source release](https://github.com/nazeeh111/Muster/releases/tag/v0.2.1) and [earlier worksheet capture](docs/worksheet.jpg) remain historical; current source includes the multi-tab safeguards below.
 
 Mark a cancellation, keep settled assignments locked, and calculate a proposal that fills as many positions as possible while minimizing changes. For named blocks, shortage explanations identify groups of positions that cannot all be filled. Timed shifts can overlap; when the search proves a shortage, Muster reports the maximum coverage for the whole rota.
 

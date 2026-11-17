@@ -1,0 +1,185 @@
+{
+  "scope": "Portable native example and exact runnable application files; tests remain in repository. Unsigned member integrity.",
+  "files": [
+    {
+      "path": "BUNDLE-README.md",
+      "sha256": "28c3cf6dec2fd9cce3558e89c8d95803aa1b972dd46ee1399c291db7905f2135",
+      "bytes": 2167
+    },
+    {
+      "path": "LICENSE.txt",
+      "sha256": "521fa8840fca1128d4be6254008a4f5c3255c6848e2df0983a79f38a1f4281cd",
+      "bytes": 1066
+    },
+    {
+      "path": "README.txt",
+      "sha256": "926750d869a5cc2d4b79aa315e9ab40e44ea8e73b91f9963aca090890bd212a3",
+      "bytes": 460
+    },
+    {
+      "path": "after-assignments.csv",
+      "sha256": "96d6688be64eebd8b5604cc101e8dd0cb55d45148b26ceb784bce80175b36f68",
+      "bytes": 375
+    },
+    {
+      "path": "after-project.json",
+      "sha256": "6e935c03fc44e0d5effe7f1417c1d5c04a0416668a962c06122da6569a8f289e",
+      "bytes": 2266
+    },
+    {
+      "path": "after-result.json",
+      "sha256": "eb13f57d162b7282606abd844a9bb74936ed73545dd139e78c818763e66b243b",
+      "bytes": 797
+    },
+    {
+      "path": "app/LICENSE",
+      "sha256": "521fa8840fca1128d4be6254008a4f5c3255c6848e2df0983a79f38a1f4281cd",
+      "bytes": 1066
+    },
+    {
+      "path": "app/favicon.svg",
+      "sha256": "0304bcf6db00dcfdaa0bab7a60e795228655ec72bc75930bd039007a9e7372fc",
+      "bytes": 187
+    },
+    {
+      "path": "app/index.html",
+      "sha256": "848f858841873f778c75e439816db76275cfa6bfd7e0c45557038ec18d0f5dad",
+      "bytes": 9033
+    },
+    {
+      "path": "app/package.json",
+      "sha256": "92f6b9984576419e888c83e433912a6afffde90aea9498553fd0c18e0d4bc6ce",
+      "bytes": 196
+    },
+    {
+      "path": "app/src/app.js",
+      "sha256": "c116efb4196f3f8cb2c037b23568a020111718eee9c2ccebd60512704d9efaa3",
+      "bytes": 35730
+    },
+    {
+      "path": "app/src/example.js",
+      "sha256": "fccafa6bbe4237bc4148ff5d54b0a77cac77a14ba246f8f307ef1b570b65a68e",
+      "bytes": 2040
+    },
+    {
+      "path": "app/src/model.js",
+      "sha256": "45e694282b3a65431f52d3475c1adc79459595968f56826d3dd848cbd339c470",
+      "bytes": 6508
+    },
+    {
+      "path": "app/src/session.js",
+      "sha256": "2b6b5217ae2a9d910631ce2991b30d741e11cdacb7e44ce2944413c06d74ca66",
+      "bytes": 2481
+    },
+    {
+      "path": "app/src/solver.js",
+      "sha256": "70ed35efe742d3c5796741d24ca3a11480c586d83febe3e0d9d8cea7dddba9ae",
+      "bytes": 11084
+    },
+    {
+      "path": "app/src/state.js",
+      "sha256": "877596ca28d0559a0d6c999eeafa6d071894a3cd8e4dba0e77f480edbf77cbf0",
+      "bytes": 3075
+    },
+    {
+      "path": "app/src/time.js",
+      "sha256": "13059358e3081cdd5d5c6950767e80dce1108bb70c3ced3982123f029c2a7bfb",
+      "bytes": 1614
+    },
+    {
+      "path": "app/src/timed-solver.js",
+      "sha256": "af3ed6c04fd84170a355369e4a427dc413ab683e2b1a4640300d1dcc7ad8a3a6",
+      "bytes": 10637
+    },
+    {
+      "path": "app/src/worker.js",
+      "sha256": "8fdc8a70c58012e798d847ba45b33822062e4b0e7ac454205ecb2f0807f41592",
+      "bytes": 315
+    },
+    {
+      "path": "app/styles.css",
+      "sha256": "449dde8fb7d8369e5f31eed33ce71adb39375080a4e466e2f05ac6e73607ae87",
+      "bytes": 16039
+    },
+    {
+      "path": "before-assignments.csv",
+      "sha256": "792c2eb6c1bbf72604b3bfe964547122ac182bb36f0f282ff21b5b66cec7955e",
+      "bytes": 381
+    },
+    {
+      "path": "before-project.json",
+      "sha256": "50ab763e6cd6d2cb4bb2fc0672315e9bc1969c6721fae76c2a88439d6a6d7760",
+      "bytes": 2251
+    },
+    {
+      "path": "before-result.json",
+      "sha256": "05099118ce2147c99b9cdddda448d318931cbc366a1ef01caf9e223652a309ff",
+      "bytes": 1505
+    },
+    {
+      "path": "browser-assignments.csv",
+      "sha256": "96d6688be64eebd8b5604cc101e8dd0cb55d45148b26ceb784bce80175b36f68",
+      "bytes": 375
+    },
+    {
+      "path": "browser-project.json",
+      "sha256": "acad743bb6b4bba78301862a1a6b4dd677c03bd13adbccd09bde422d08630998",
+      "bytes": 2266
+    },
+    {
+      "path": "capacity-mobile.html",
+      "sha256": "0ff156cb386bf8e82c3bcadca21d4f03b5f49ea4857d52b049d83debd95ad0b6",
+      "bytes": 5526
+    },
+    {
+      "path": "capacity-mobile.png",
+      "sha256": "ddf3220a946bf33071fa7b9926d1bca78638db9770745d430336cd2a062c82a9",
+      "bytes": 73324
+    },
+    {
+      "path": "capacity-mobile.svg",
+      "sha256": "d296dff19550eade117efcd73d564fe6437208381d969b0167719a84268bf6fe",
+      "bytes": 5177
+    },
+    {
+      "path": "capacity.html",
+      "sha256": "08b1c8b1d728117703c5912ef33bd806ad123cb0eedc12f7690746354664fa35",
+      "bytes": 5667
+    },
+    {
+      "path": "capacity.png",
+      "sha256": "750f0ada8e6fe50f79275af2c86655bedb43adb256fe0f1cf6c4815bd58d1a22",
+      "bytes": 104780
+    },
+    {
+      "path": "capacity.svg",
+      "sha256": "c09b2c0e18d2d7348d15a4f2b9efccfb3b94a9b1a8bd3055c1c8c42c50395a8e",
+      "bytes": 5317
+    },
+    {
+      "path": "figure-manifest.json",
+      "sha256": "77f3b7660c68c3799c41bee3fd732c54a178129e20158bd049cdea7fa7270dae",
+      "bytes": 3080
+    },
+    {
+      "path": "figure.py",
+      "sha256": "4b4baa106b780ca8c69f07ddeffaf23e8c60e99ad8616c04bdcc18a80a657d7b",
+      "bytes": 6705
+    },
+    {
+      "path": "reopen.mjs",
+      "sha256": "074fb6a24172df64d50b6a775b6cef766201c80b9cc07d29d2d2a6c9739fe248",
+      "bytes": 1842
+    },
+    {
+      "path": "worksheet-desktop.png",
+      "sha256": "b630d68ef24a4c9630a5df5d9fc5dfc05998fd4d5b191b6d50b4c0ed617a3213",
+      "bytes": 114923
+    },
+    {
+      "path": "worksheet-mobile.png",
+      "sha256": "d45167ed0ae091df395e9793b08d5d421d7599b612544947c2dfc1200b31d7cd",
+      "bytes": 112206
+    }
+  ]
+}

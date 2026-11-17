@@ -1,0 +1,2 @@
+# Preserve every hashed reader member and native export exactly on checkout.
+docs/presentation/** -text

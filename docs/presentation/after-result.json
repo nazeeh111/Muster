@@ -1,0 +1,54 @@
+{
+  "assignments": [
+    {
+      "positionId": "collection",
+      "personId": "ada"
+    },
+    {
+      "positionId": "delivery",
+      "personId": "cy"
+    },
+    {
+      "positionId": "welcome",
+      "personId": "bob"
+    },
+    {
+      "positionId": "packing",
+      "personId": "dee"
+    },
+    {
+      "positionId": "restock",
+      "personId": "eve"
+    }
+  ],
+  "unfilled": [],
+  "loads": [
+    {
+      "personId": "ada",
+      "count": 1
+    },
+    {
+      "personId": "cy",
+      "count": 1
+    },
+    {
+      "personId": "bob",
+      "count": 1
+    },
+    {
+      "personId": "dee",
+      "count": 1
+    },
+    {
+      "personId": "eve",
+      "count": 1
+    }
+  ],
+  "changes": [],
+  "objective": {
+    "uncovered": 0,
+    "changes": 0,
+    "squaredLoads": 5
+  },
+  "shortage": null
+}

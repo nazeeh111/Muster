@@ -1,0 +1,99 @@
+{
+  "source_commit": "aed0636566e7936c996564beeecb9c69172ea3a6",
+  "version": "0.2.2-dev.0",
+  "case": "Unchanged built-in synthetic named-block rota, then only Cy Saturday availability added via actual UI.",
+  "claim_scope": "Eligibility links and full assignments, not the complete min-cost-flow network; no physical/time scale.",
+  "fonts": "Actual platform Arial and Georgia,37nodes each variant; no fonts redistributed.",
+  "checks": {
+    "native_existing_tests": 59,
+    "independent_exhaustive_feasible_counts": [
+      36,
+      63
+    ],
+    "objectives": [
+      [
+        1,
+        1,
+        4
+      ],
+      [
+        0,
+        0,
+        5
+      ]
+    ],
+    "native_browser_exports": "exactJSONandCSV",
+    "actual_phone": "390px,scale1,nooverflow",
+    "font_bounds_overlap": "all37nodes/variant"
+  },
+  "files": [
+    {
+      "path": "before-project.json",
+      "sha256": "50ab763e6cd6d2cb4bb2fc0672315e9bc1969c6721fae76c2a88439d6a6d7760"
+    },
+    {
+      "path": "after-project.json",
+      "sha256": "6e935c03fc44e0d5effe7f1417c1d5c04a0416668a962c06122da6569a8f289e"
+    },
+    {
+      "path": "before-result.json",
+      "sha256": "05099118ce2147c99b9cdddda448d318931cbc366a1ef01caf9e223652a309ff"
+    },
+    {
+      "path": "after-result.json",
+      "sha256": "eb13f57d162b7282606abd844a9bb74936ed73545dd139e78c818763e66b243b"
+    },
+    {
+      "path": "before-assignments.csv",
+      "sha256": "792c2eb6c1bbf72604b3bfe964547122ac182bb36f0f282ff21b5b66cec7955e"
+    },
+    {
+      "path": "after-assignments.csv",
+      "sha256": "96d6688be64eebd8b5604cc101e8dd0cb55d45148b26ceb784bce80175b36f68"
+    },
+    {
+      "path": "browser-project.json",
+      "sha256": "acad743bb6b4bba78301862a1a6b4dd677c03bd13adbccd09bde422d08630998"
+    },
+    {
+      "path": "browser-assignments.csv",
+      "sha256": "96d6688be64eebd8b5604cc101e8dd0cb55d45148b26ceb784bce80175b36f68"
+    },
+    {
+      "path": "figure.py",
+      "sha256": "4b4baa106b780ca8c69f07ddeffaf23e8c60e99ad8616c04bdcc18a80a657d7b"
+    },
+    {
+      "path": "capacity.svg",
+      "sha256": "c09b2c0e18d2d7348d15a4f2b9efccfb3b94a9b1a8bd3055c1c8c42c50395a8e"
+    },
+    {
+      "path": "capacity-mobile.svg",
+      "sha256": "d296dff19550eade117efcd73d564fe6437208381d969b0167719a84268bf6fe"
+    },
+    {
+      "path": "capacity.html",
+      "sha256": "08b1c8b1d728117703c5912ef33bd806ad123cb0eedc12f7690746354664fa35"
+    },
+    {
+      "path": "capacity-mobile.html",
+      "sha256": "0ff156cb386bf8e82c3bcadca21d4f03b5f49ea4857d52b049d83debd95ad0b6"
+    },
+    {
+      "path": "capacity.png",
+      "sha256": "750f0ada8e6fe50f79275af2c86655bedb43adb256fe0f1cf6c4815bd58d1a22"
+    },
+    {
+      "path": "capacity-mobile.png",
+      "sha256": "ddf3220a946bf33071fa7b9926d1bca78638db9770745d430336cd2a062c82a9"
+    },
+    {
+      "path": "worksheet-desktop.png",
+      "sha256": "b630d68ef24a4c9630a5df5d9fc5dfc05998fd4d5b191b6d50b4c0ed617a3213"
+    },
+    {
+      "path": "worksheet-mobile.png",
+      "sha256": "d45167ed0ae091df395e9793b08d5d421d7599b612544947c2dfc1200b31d7cd"
+    }
+  ]
+}
