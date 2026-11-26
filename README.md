@@ -11,7 +11,7 @@ Muster repairs volunteer rotas after a cancellation. Keep existing commitments l
 
 **Two positions can each be fillable while their pair is not.** The [recorded native results](docs/presentation/before-result.json) identify a two-position subset with capacity one. In the [actual browser edit](docs/presentation/worksheet-desktop.png), Cy becomes available on Saturday. The repaired rota fills **5/5** positions with **zero reference changes**, retaining Bob's lock. The input change is hypothetical; it does not obtain anyone's consent.
 
-[Download and reopen the complete case](docs/presentation/worked-example.zip) · [Actual phone worksheet](docs/presentation/worksheet-mobile.png) · [Data, exact objectives and limits](docs/presentation/README.md)
+[Download and reopen the complete case](https://github.com/nazeeh111/Muster/raw/94a096b1a284d16e24a7d789ab05e6d287b832f5/docs/presentation/worked-example.zip) · [Actual phone worksheet](docs/presentation/worksheet-mobile.png) · [Data, exact objectives and limits](docs/presentation/README.md)
 
 The worksheet runs locally in your browser. The included rota is synthetic. [Earlier source release](https://github.com/nazeeh111/Muster/releases/tag/v0.2.1) · [Earlier worksheet capture](docs/worksheet.jpg)
 
