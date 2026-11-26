@@ -386,11 +386,9 @@ function renderExplanation() {
         el("dd", {}, `${s.capacity}/${s.demand}`),
         el("dt", {}, "Minimum unfilled"),
         el("dd", { class: "result-gap" }, s.deficit)),
-      ...(s.scope === "all-positions" ? [] : [
-        el("h4", {}, "Positions in this subset"),
-        el("ul", {}, s.positionIds.map((id) => el("li", {}, label("positions", id)))),
-      ]),
-      el("button", { onclick: () => showView("people") }, "Review availability"),
+      s.scope === "all-positions"
+        ? el("button", { onclick: () => showView("people") }, "Review availability")
+        : positionReview(s.positionIds),
     );
     if (s.scope !== "all-positions" && s.personIds.length) {
       area.append(
@@ -455,6 +453,56 @@ function renderExplanation() {
       ),
     ),
   );
+}
+// A named-block certificate identifies a set. Inspect its inputs one position
+// at a time; individual eligibility does not guarantee collective coverage.
+function positionReview(ids) {
+  const positions = model.positions.filter((p) => ids.includes(p.id));
+  const select = el("select", { id: "review-position" },
+    positions.map((p) => {
+      const sameName = positions.filter((other) => other.label === p.label);
+      const block = label("blocks", p.blockId);
+      const repeatedBlock = sameName.some((other) =>
+        other.id !== p.id && label("blocks", other.blockId) === block);
+      const title = sameName.length === 1 ? p.label :
+        [p.label, block, ...(repeatedBlock ? [p.id] : [])].join(" · ");
+      return el("option", { value: p.id }, title);
+    }));
+  select.value = positions.find((p) => result.unfilled.includes(p.id))?.id ?? positions[0].id;
+  const list = el("div", { class: "review-people" });
+  const context = el("p", { class: "review-context" });
+
+  function inspect() {
+    const position = positions.find((p) => p.id === select.value);
+    context.textContent = [label("roles", position.roleId), label("blocks", position.blockId)].join(" · ");
+    const qualified = model.people.filter((p) => p.roles.includes(position.roleId));
+    list.replaceChildren();
+    for (const person of qualified) {
+      const locks = model.positions.filter((p) => p.lockedPersonId === person.id);
+      const sameBlock = locks.find((p) => p.blockId === position.blockId);
+      const available = person.availability.includes(position.blockId);
+      const remaining = person.maxAssignments - locks.length;
+      const constraints = [
+        available ? "Marked available in this block" : "Marked unavailable in this block",
+        sameBlock ? `Locked to ${sameBlock.label}` : `${counted(remaining, "assignment")} left after locks (limit ${person.maxAssignments})`,
+      ];
+      const edit = el("button", {
+        "aria-label": `Edit ${person.name} for ${position.label}`,
+        "data-focus-key": `review:${position.id}:${person.id}`,
+        onclick: () => editPerson(person),
+      }, "Edit");
+      list.append(el("div", { class: "review-person" },
+        el("strong", {}, person.name), edit, el("p", {}, constraints.join(". ") + ".")));
+    }
+    if (!qualified.length)
+      list.append(el("p", {}, "No one has this role."),
+        el("button", { onclick: () => showView("people") }, "Review people and roles"));
+  }
+  select.addEventListener("change", inspect);
+  inspect();
+  return el("section", { class: "position-review", "aria-labelledby": "review-heading" },
+    el("h4", { id: "review-heading" }, "Review staffing"),
+    el("label", { for: "review-position" }, "Position in the shortage"), select, context, list);
 }
 function renderPeople() {
   $("people-list").replaceChildren(
@@ -895,6 +943,7 @@ $("editor").addEventListener("close", () => {
       !closed.watch.changed() && focusStillOwned && document.hasFocus()) {
     const target = closed.anchor?.key ? focusForKey(closed.anchor.key) : closed.anchor?.element;
     if (target?.isConnected) target.focus();
+    else if (closed.anchor?.key?.startsWith("review:") && !result) $("solve").focus();
   }
 });
 
